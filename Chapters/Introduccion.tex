@@ -1,0 +1,51 @@
+% Chapter Template
+
+\chapter{Introducci\'on} % Main chapter title
+
+\label{Chapter1} % Change X to a consecutive number; for referencing this chapter elsewhere, use \ref{ChapterX}
+
+\lhead{Cap\'itulo 1. \emph{Introducci\'on}} % Change X to a consecutive number; this is for the header on each page - perhaps a shortened title
+
+%----------------------------------------------------------------------------------------
+%	INTRODUCCION
+%----------------------------------------------------------------------------------------
+
+\robotto es un motor de juegos de código libre para la plataforma Android escrito íntegramente en el lenguaje Java.\\
+El hecho de usar Java como lenguaje principal asegura una total y sencilla integración dentro de aplicaciones que hagan uso del 3D tanto nuevas como ya existentes.\\
+Por otra parte, y para simplificar el proceso de desarrollo de software, se incluye la herramienta \studio, herramienta que permite que desde una sencilla y práctica interfaz web pueda editarse la escena, permitiendo ver los resultados en un dispositivo Android instantáneamente y sin necesidad de pasar por lentas etapas de compilación de código.\\
+Por último, y además de todo esto, se ha diseñado un formato de fichero propio para la representación de la escena tridimensional, dicho fichero puede generarse a partir de una escena del software Blender mediante el uso de scripting o bien mediante las herramientas proporcionadas en \studio.\\
+
+
+%-----------------------------------
+%	SECTION 1
+%-----------------------------------
+\section{Historia de \robotto}
+La idea de crear \robotto nace a razón de un proyecto desarrollado en una de las asignaturas del Grado de Ingeniería Informática, es en ese momento donde se fragua la idea de crear un motor de juegos mucho más sofisticado, extensible y robusto, pero sobretodo, de código libre.\\
+El nombre del proyecto surge del primer día en el que empecé a codificar las primeras líneas de código, día en el cuál, mientras visionaba una de mis series favoritas y en la que la canción de apertura se podía escuchar un estribillo pegajoso el cuál decía \textit{"Doumo arigatou Mr. Roboto"}(Muchas gracias Sr. Robot) pues me pareció buena idea tomar de ahí el nombre a forma de homenaje a dicha serie, a la propia casualidad, y al hecho de que era un proyecto pensado para la plataforma Android.
+
+%-----------------------------------
+%	Motivacion
+%-----------------------------------
+
+\section{Objetivos y Motivación}
+TODO:
+
+\section{Tecnologías utilizadas}
+
+\subsection{\robotto}
+
+Las distintas tecnologías utilizadas para el desarrollo de \robotto constituyen las mismas que las utilizadas en cualquier aplicación Android.
+
+\begin{itemize}
+\item Android SDK.
+\item Android Studio como IDE de desarrollo.
+\item Gradle como sistema de construcción, herramienta por defecto en Android Studio.
+\item GitHub como repositiorio de software.
+\end{itemize}
+
+A la hora de escoger la tecnología a usar se planteó la opción de implementar \robotto haciendo uso de la API nativa de Android, sin embargo se desestimó la idea por cuestiones de velocidad en el desarrollo y calidad del software generado.\\
+Además, y tras la realización de múltiples pruebas se comprobó que aunque el rendimiento resultaba algo menor haciendo uso de código no nativo, si este era optimizado teniendo en mente los consejos de Android para aplicaciones que hacen uso de OpenGL y un tratamiento minucioso de la gestión de la memoria se podían conseguir resultados similares, incluso al tratar con escenas complejas.\\
+Por otra parte, y como ya se comentó, uno de los objetivos era la fácil integración dentro de cualquier proyecto Android existente, dicha tarea resulta extremadamente sencilla si se hace uso de herramientas como Android Studio + Gradle.\\
+Por último se ha evitado el uso de dependencias externas, de forma que \robotto es un proyecto totalmente autocontenido.\\
+
+\subsection{MrRobotto Studio}

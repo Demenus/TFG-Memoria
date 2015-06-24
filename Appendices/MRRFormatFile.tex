@@ -1,0 +1,397 @@
+% Appendix Template
+
+\chapter{Especificación del formato MRR} % Main appendix title
+
+\label{AppendixA} % Change X to a consecutive letter; for referencing this appendix elsewhere, use \ref{AppendixX}
+
+\lhead{Appendix A. \emph{Especificación del formato MRR}} % Change X to a consecutive letter; this is for the header on each page - perhaps a shortened title
+
+El formato MRR es un formato de fichero para representación de escenas 3D usado por el MrRobotto 3D Engine.
+La extensión elegida para este tipo de ficheros es la de \textit{'.mrr'}.
+Este formato utiliza internamente una mezcla entre formato JSON para los datos relacionados con la escena en sí y formato binario para los datos relacionados con las texturas.
+
+
+\section{Conceptos}
+%TODO
+
+\section{Estructura del formato}
+El formato MRR posee de cinco secciones a distinguir tal y como se aprecia en la siguiente tabla:
+
+\clearpage
+
+\begin{center}
+\small
+\begin{longtable}{|l|l|p{7.5cm}|}
+  \cline{1-3}
+  \multicolumn{2}{|l}{\bf Sección} & {\bf Cabecera} \\
+  \multicolumn{2}{|l} {\bf Valor} & {\tt MRROBOTTOFILE}\\
+  \cline{2-3}
+  & {\tt MRROBOTTOFILE} & Tag\\
+  
+  \cline{1-3}
+  \multicolumn{2}{|l}{\bf Sección} & {\bf Sección de cabecera de JSON} \\
+  \multicolumn{2}{|l} {\bf Valor} & {\tt JSON N}\\
+  \cline{2-3}
+  & {\tt JSON} & Tag\\
+  \cline{2-3}
+  & {\tt N} & Tamaño de la sección JSON representado como un número entero de 4 bytes en codificación big endian.\\
+  \cline{2-3}
+  
+  \cline{1-3}
+  \multicolumn{2}{|l}{\bf Sección} & {\bf Sección de datos JSON} \\
+  \multicolumn{2}{|l} {\bf Valor} & {\tt json}\\
+  \cline{2-3}
+  & {\tt json} & Cadena de carácteres en codificación ASCII de longitud N y con formato JSON\\
+  \cline{2-3}
+
+  \cline{1-3}
+  \multicolumn{2}{|l}{\bf Sección} & {\bf Cabecera de la sección de texturas (Opcional)} \\
+  \multicolumn{2}{|l} {\bf Valor} & {\tt TEXT M}\\
+  \cline{2-3}
+  & {\tt TEXT} & Tag\\
+  \cline{2-3}
+  & {\tt M} & Tanaño de la sección de texturas representado como un número entero de 4 bytes en codificación big endian.\\
+  \cline{2-3}
+  
+  \cline{1-3}
+  \multicolumn{2}{|l}{\bf Sección} & {\bf Sección de texturas (Opcional)} \\
+  \multicolumn{2}{|l} {\bf Valor} & {\tt texturas}\\
+  \cline{2-3}
+  & {\tt texturas} & Datos binarios de las texturas almacenadas y de longitud M.\\
+  \cline{2-3}
+  
+  \cline{1-3}
+  \multicolumn{2}{|l}{\bf Sección} & {\bf Sección de nombre de textura} \\
+  \multicolumn{2}{|l} {\bf Valor} & {\tt NAME M name N}\\
+  \cline{2-3}
+  & {\tt NAME} & Tag\\
+  \cline{2-3}
+  & {\tt M} & Size of name represented as a big endian 4-bytes integer\\
+  \cline{2-3}
+  & {\tt name} & String representing the name of texture file\\
+  \cline{2-3}
+  & {\tt N} & Size of texture represented as a big endian 4-bytes integer\\
+  \cline{2-3}
+  
+  \cline{1-3}
+  \multicolumn{2}{|l}{\bf Sección} & {\bf Texture data Sección (Optional)} \\
+  \multicolumn{2}{|l} {\bf Valor} & {\tt texture}\\
+  \cline{2-3}
+  & {\tt texture} & Texture data of length M\\
+  \cline{1-3}
+\end{longtable}
+\end{center}
+
+\subsection{Cabecera}
+En la cabecera del fichero se encuentra el \textit{magic number} que se ha asignado al formato.
+Se trata de un tag almacenado como un cadena de \textit{char} en codificación ASCII \texttt{MRROBOTTOFILE}
+
+\subsection{Secci\'on de cabecera JSON}
+En la cabecera de la sección se encuentra el tag que indica el inicio de la sección, \texttt{JSON} seguido por el número de bytes ocupado por la sección
+
+\subsection{Sección de datos JSON}
+A continuación se expondrán todos los campos usados en la sección JSON de forma jerárquica.
+
+\clearpage
+
+\begin{center}
+\small
+\begin{longtable}{|l|l|p{7.5cm}|}
+  \cline{1-3}
+  \multicolumn{2}{|l}{\bf Sección} & {\bf Raíz del documento} \\
+  \cline{2-3}
+  & {\tt Hierarchy} & Jerarquía de la escena\\
+  \cline{2-3}
+  & {\tt SceneObjects} & Lista de objetos de la escena\\  
+  \cline{1-3}
+\end{longtable}
+\end{center}
+
+\begin{center}
+\small
+\begin{longtable}{|l|l|p{7.5cm}|}
+  \cline{1-3}
+  \multicolumn{2}{|l}{\bf Sección} & {\bf \tt Hierarchy} \\
+  \cline{2-3}
+  & {\tt Children} & Hijos del objeto raíz.\\
+  \cline{2-3}
+  & {\tt Name} & Nombre del objeto raíz.\\  
+  \cline{1-3}
+\end{longtable}
+\end{center}
+
+\begin{center}
+\small
+\begin{longtable}{|l|l|p{7.5cm}|}
+  \cline{1-3}
+  \multicolumn{2}{|l}{\bf Sección} & {\bf \tt Children} \\
+  \cline{2-3}
+  & {\tt Children} & Hijos del objeto actual.\\
+  \cline{2-3}
+  & {\tt Name} & Nombre del objeto raíz.\\  
+  \cline{1-3}
+\end{longtable}
+\end{center}
+
+\subsubsection{Ejemplo de sección JSON}
+\begin{verbatim}
+{
+    "Hierarchy":{
+        "Children":[
+            {
+                "Children":[],
+                "Name":"Camera"
+            },
+            {
+                "Children":[],
+                "Name":"Lamp"
+            },
+            {
+                "Children":[],
+                "Name":"Cube"
+            }
+        ],
+        "Name":"Scene"
+    },
+    "SceneObjects":[
+        {
+            "AmbientLightColor":[0.5,0.5,0.5,1.0],
+            "ClearColor":[0.5,0.5,0.5,1.0],
+            "Name":"Scene",
+            "ShaderProgram":null,
+            "Transform":{
+                "Location":[0.0,0.0,0.0],
+                "Rotation":[1.0,0.0,0.0,0.0],
+                "Scale":[1.0,1.0,1.0]
+            },
+            "Type":"Scene",
+            "UniformKeys":[
+                {
+                    "Count":1,
+                    "Generator":"Generator_Model_View_Projection_Matrix",
+                    "Index":0,
+                    "Level":1,
+                    "Uniform":"Model_View_Projection_Matrix"
+                },
+                ...
+            ]
+        },
+        {
+            "Lens":{
+                "AspectRatio":0.857556,
+                "ClipEnd":100.0,
+                "ClipStart":0.1,
+                "FOV":35.0,
+                "Type":"Perspective"
+            },
+            "Name":"Camera",
+            "ShaderProgram":null,
+            "Transform":{
+                "Location":[0.0,-10.0,0.0],
+                "Rotation":[1.0,0.0,0.0,0.0],
+                "Scale":[1.0,1.0,1.0]
+            },
+            "Type":"Camera",
+            "UniformKeys":[
+                {
+                    "Count":1,
+                    "Generator":"Generator_View_Matrix",
+                    "Index":0,
+                    "Level":0,
+                    "Uniform":"View_Matrix"
+                },
+                ...
+            ]
+        },
+        {
+            "Color":[1.0,1.0,1.0],
+            "LightType":"Point",
+            "LinearAttenuation":0.0,
+            "Name":"Lamp",
+            "QuadraticAttenuation":1.0,
+            "ShaderProgram":null,
+            "Transform":{
+                "Location":[4.076245,1.005454,5.903862],
+                "Rotation":[0.570948,0.169076,0.272171,0.75588],
+                "Scale":[1.0,1.0,1.0]
+            },
+            "Type":"Light",
+            "UniformKeys":[
+                {
+                    "Count":1,
+                    "Generator":"Generator_Light_Position",
+                    "Index":0,
+                    "Level":0,
+                    "Uniform":"Light_Position"
+                },
+                ...
+            ]
+        },
+        {
+            "Materials":[
+                {
+                    "Ambient":{
+                        "Color":[0.0,0.0,0.0,1.0],
+                        "Intensity":1.0
+                    },
+                    "Diffuse":{
+                        "Color":[0.8,0.0,0.004184,1.0],
+                        "Intensity":0.8
+                    },
+                    "Name":"Material",
+                    "Specular":{
+                        "Color":[1.0,1.0,1.0,1.0],
+                        "Intensity":0.5
+                    },
+                    "Texture":{
+                        "Index":1,
+                        "MagFilter":"Linear",
+                        "MinFilter":"Linear",
+                        "Name":"fire.png"
+                    }
+                }
+            ],
+            "Mesh":{
+                "AttributeKeys":[
+                    {
+                        "Attribute":"Vertices",
+                        "DataType":"float",
+                        "Pointer":0,
+                        "Size":3,
+                        "Stride":16
+                    },
+                    {
+                        "Attribute":"Normals",
+                        "DataType":"float",
+                        "Pointer":3,
+                        "Size":3,
+                        "Stride":16
+                    },
+                    ...
+                ],
+                "Count":888,
+                "DrawType":"Triangles",
+                "IndexData":[0,1,2,138,142,143,156,4,...],
+                "Name":"Cube",
+                "VertexData":[0.741746,0.741746,3.736173,0.57735,...]
+            },
+            "Name":"Cube",
+            "ShaderProgram":{
+                "Attributes":[
+                    {
+                        "Attribute":"Normals",
+                        "DataType":"vec3",
+                        "Index":1,
+                        "Name":"aNormal"
+                    },
+                    {
+                        "Attribute":"Vertices",
+                        "DataType":"vec3",
+                        "Index":0,
+                        "Name":"aVertex"
+                    },
+                    ...
+                ],
+                "FragmentShaderSource":"precision highp float;\nuniform mat4 fsmrModelViewMatrix;\nuniform vec4 mrLightPosition; ...",
+                "Name":"ShaderProgram_0",
+                "Uniforms":[
+                    {
+                        "Count":1,
+                        "DataType":"mat4",
+                        "Name":"mrMvpMatrix",
+                        "Uniform":"Model_View_Projection_Matrix"
+                    },
+                    {
+                        "Count":4,
+                        "DataType":"mat4",
+                        "Name":"mrBones",
+                        "Uniform":"Bone_Matrix"
+                    },
+                    ...
+                ],
+                "VertexShaderSource":"uniform float mrDiffuseInt;\nuniform vec4 mrAmbientColor;\nuniform float mrAmbientInt;\nuniform mat4 mrBones[4];..."
+            },
+          "Skeleton":{
+                "Actions":[
+                    {
+                        "FPS":24,
+                        "KeyFrames":[
+                            {
+                                "Bones":[
+                                    {
+                                        "Location":[1.0,0.0,1.0],
+                                        "Name":"bottom",
+                                        "Rotation":[0.757091,-0.0,0.65331,0.0],
+                                        "Scale":[1.0,1.0,1.0]
+                                    },
+                                    {
+                                        "Location":[0.989234,0.0,1.149418],
+                                        "Name":"mid",
+                                        "Rotation":[0.706029,0.0,0.708183,0.0],
+                                        "Scale":[1.0,1.0,1.0]
+                                    },
+                                    ...
+                                ],
+                                "Number":1
+                            },
+                            {
+                                "Bones":[
+                                    ...
+                                ],
+                                "Number":6
+                            },
+                          ...
+                        ],
+                        "Name":"ArmatureAction",
+                        "Type":"Skeletal"
+                    }
+                ],
+                "BoneOrder":["bottom","mid","top","right"],
+                "Pose":[
+                    {
+                        "Location":[1.0,0.0,1.0],
+                        "Name":"bottom",
+                        "Rotation":[0.757091,-0.0,0.65331,0.0],
+                        "Scale":[1.0,1.0,1.0]
+                    },
+					...
+                ],
+                "Root":{
+                    "Children":[
+                        {
+                            "Children":[
+                                {
+                                    "Children":[],
+                                    "Name":"top"
+                                }
+                            ],
+                            "Name":"mid"
+                        },
+                        {
+                            "Children":[],
+                            "Name":"right"
+                        }
+                    ],
+                    "Name":"bottom"
+                }
+            },
+            "Transform":{
+                "Location":[-1.311603,10.0,-1.501951],
+                "Rotation":[1.0,0.0,0.0,0.0],
+                "Scale":[0.717982,0.717982,0.717982]
+            },
+            "Type":"Model",
+            "UniformKeys":[
+                {
+                    "Count":1,
+                    "Generator":"Generator_Model_Matrix",
+                    "Index":0,
+                    "Level":0,
+                    "Uniform":"Model_Matrix"
+                },
+              ...
+            ]
+        }
+    ]
+}
+\end{verbatim}

@@ -1,0 +1,327 @@
+% Chapter Template
+
+\definecolor{mybluei}{RGB}{124,156,205}
+\definecolor{myblueii}{RGB}{73,121,193}
+\definecolor{mygreen}{RGB}{202,217,126}
+\definecolor{mypink}{RGB}{233,198,235}
+
+% this length is used to control the width of the light blue frame
+% for the upper part of the diagram
+\newlength\myframesep
+\setlength\myframesep{8pt}
+
+\pgfdeclarelayer{background}
+\pgfsetlayers{background,main}
+
+\pgfkeys{
+    /tikz/node distance/.append code={
+        \pgfkeyssetvalue{/tikz/node distance value}{#1}
+    }
+}
+
+\newcommand\widernode[5][blueb]{
+\node[
+        #1,
+        inner sep=0pt,
+        shift=($(#2.south)-(#2.north)$),
+        yshift=-\pgfkeysvalueof{/tikz/node distance value},
+        fit={(#2) (#3)},
+        label=center:{\sffamily\bfseries\color{white}#4}] (#5) {};
+}
+
+\chapter{\robotto} % Main chapter title
+
+\label{Chapter2} % Change X to a consecutive number; for referencing this chapter elsewhere, use \ref{ChapterX}
+
+\lhead{Cap\'itulo 2. \emph{\robotto}} % Change X to a consecutive number; this is for the header on each page - perhaps a shortened title
+
+%----------------------------------------------------------------------------------------
+%	SECTION 1
+%----------------------------------------------------------------------------------------
+
+Ahora que se conoce la finalidad de \robotto se procederá a explicar su funcionamiento, sus partes, y como estas se relacionan entre sí
+
+\section{Diseño de \robotto}
+
+A lo largo de esta sección se explicarán las distintas decisiones en el diseño de \robotto. Tal y como se aprecia en el esquema principal, ver \ref{fig:Esquema}, se buscan varios objetivos.\\
+Por una parte se quiere poder portar desde un software de edición 3D como blender a un formato propio y este a su vez que sea fácil de editar proporcionando un editor capaz de ello. \\
+Por otra parte se busca desacoplar la interfaz que usará el usuario del núcleo del motor proporcionando así seguridad de uso y una interfaz estable abierta a la extensión pero cerrada a la modificación.\\
+Además, y tal y como se espera de un motor de gráficos 3D, está la gestión de la escena y de los recursos para una correcta visualización.\\
+Y por último, pero no menos importante, la capacidad de interactuar con eventos procedentes del dispositivo.\\
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.4]{esquema.png}
+\end{center}
+\caption[Esquema principal de \robotto]{Esquema principal de \robotto}
+\label{fig:Esquema}
+\end{figure}
+
+\subsection{Formato .MRR}
+La decisión de usar un formato propio frente a usar alguno ya ampliamente aceptado como podría ser \textit{.fbx} o \textit{.dae} viene fomentado por la necesidad de controlar en su totalidad los distintos datos y sobretodo, la forma en la que estos se almacenarán dentro de una aplicación.\\
+
+Por ejemplo de cara al rendimiento se decidió almacenar los vértices de forma intercalada tal y como se recomienda en \cite{1misc} a la vez que usar en todo momento \textit{Index Buffer Objects} como se recomienda en \cite{2misc}.\\
+También se tomó en cuenta la necesidad de modificar la configuración de cómo se mostrará la escena sin necesidad de código, si no la realización de esta mediante un fichero. Por ejemplo, gracias al formato MRR se puede decidir si una malla va a ser dibujada usando triángulos o bien líneas únicamente.\\
+
+Aún así estas no son las únicas razones para proporcionar un formato propio, algunas de las citadas configuraciones podrían llevarse a cabo fácilmente haciendo uso de otros tipos de formatos más comunes. El mayor motivo detrás de la creación del formato MRR es la creación de un formato que fuera \textit{Scene Object Centric}.\\
+Con este término, \textit{Scene Object Centric}, se hace alusión a un diseño centrado en los objetos de la escena, donde cada elemento es independiente del resto de elementos que pudiesen estar definidos en ella. De esta forma la tarea de comunicar un objeto con otro recae sobre el motor y no es arrastrada desde el formato.
+Únicamente hay un único punto de conexión entre los objetos y este se realiza mediante los denominados \hyperref[susec:UnifKeyUnifGen]{UniformKeys y UniformsGenerators}
+
+Toda la información acerca del formato y cómo está organizada la información almacenada en él puede verse en \ref{AppendixA}
+
+\subsection{El SceneTree}
+El SceneTree es la estructura fundamental de almacenamiento de los objetos de la escena.\\
+Posee una estructura de árbol donde cada nodo puede tener un número variable de hijos, pero lo que lo diferencia de una estructura de árbol normal es que sus nodos se encuentran indexados tanto por nombre como por tipo, permitiendo así realizar búsquedas dentro de la estructura en $O(1)$\\
+Su funcionamiento se explicará de forma detallada en \ref{susec:MrSceneTree}
+
+\subsection{Elementos de una Escena}
+Para los elementos constituyentes de una escena 3D se decidió emular el diseño de componentes de otros motores 3D a la vez que la necesidad de que la API fuese lo más sencilla y funcional que se pudiera.\\
+
+TODO: Cambiar esto  a una lista
+\subsubsection{Object}
+Esta clase servirá de base para la jerarquía de los objetos de la escena, y en él ser verán reflejados todas las acciones compartidas. A saber:
+
+\begin{itemize}
+\item Gestión de las transformaciones geométricas:\newline
+Se espera que un objeto de una escena pueda ser transformado por traslaciones, rotaciones y escalados dentro de la escena que los contiene.
+\item Inicialización:\newline
+La inicialización de los objetos de la escena hace referencia a varias acciones que deben ser llevadas a cabo antes del uso del objeto, a saber estas pueden ser:
+\begin{itemize}
+\item Establecimiento del comportamiento de los objetos frente a los eventos
+\item Configuración de ciertos elementos en la GPU, como podría ser iniciar un Vertex Buffer Object.
+\item Configuración previa dependiente del tamaño de la ventana donde va a realizarse el dibujado de la escena, como por ejemplo, la creación de la matriz de proyección.
+\end{itemize}
+\item Actualización de los diferentes elementos que dependen de él en cada ciclo de renderizado, como podría ser la gestión de eventos o envío de datos a la GPU
+\item Métodos de comunicación con la escena y otros objetos
+\end{itemize}
+
+\subsubsection{Model}
+Los modelos 3D son seguramente el elemento más representativos dentro del motor puesto que son los únicos elementos realmente visibles de la escena.\\
+Los modelos no representan únicamente las mallas tridimensionales visibles en el mundo, si no que además engloba otras funcionalidades tales como
+
+\begin{itemize}
+\item Gestión de la visualización final:\\
+Un modelo será capaz de gestionar como será su aspecto final en la escena, es decir, un modelo será capaz de hacer uso de un sombreador (\textit{Shader}) independiente al resto.
+\item Gestión de las animaciones:\\
+En el caso de que el modelo tuviera animaciones basadas en esqueleto, es el modelo quien tiene el control sobre este.\\
+En otros motores los esqueletos suelen manejarse de forma independiente al resto de elementos y como un objeto de la escena más, pero en el caso de \robotto se decidió que un esqueleto carece de sentido si no existe un modelo sobre el cuál se aplique.
+\item Gestión de materiales y texturas:\\
+Las texturas y materiales utilizados en cada modelo, aunque puedan ser compartidos entre multipes modelos, es tarea de cada uno el controlar la textura o material usado en cada momento.
+\end{itemize}
+
+\subsubsection{Camera}
+La cámara es el objeto de escena encargado de proporcionar el punto de vista a través del cual será visualizado el mundo.\\
+Además de ello también ofrece el tipo de proyección a utilizar, a escoger entre ortogonal y perspectiva.\\
+
+\subsubsection{Light}
+
+\subsubsection{Scene}
+Posiblemente este es el objeto más conflictivo conceptualmente ya que no parece posible que la escena sea considerada como un objeto de la escena, sin embargo hay una justificación para esta decisión.\\
+Aunque la escena no genere estrictamente hablando un cambio visible si se decide hacer una transformación geométrica sobre ella, o al reaccionar frente a un evento, la finalidad de que sea considerada como objeto de la escena es que de esa manera es posible configurar algunos aspectos visibles con datos procedentes desde el fichero MRR. Es decir, de esta forma algunos atributos como por ejemplo el color plano con el que se limpia la escena puede cambiarse en la configuración y no desde código.\\
+Aún así existen más motivos que justifican esta decisión, y es que la escena, conceptualmente, es un buen lugar donde albergar la responsabilidad de la generación de uniforms que sean dependientes de varios objetos. Este concepto se explica en la siguiente apartado.
+
+\subsection{Los Conceptos de UniformKey y UniformGenerator}\label{susec:UnifKeyUnifGen}
+En este apartado se tratará cómo se realiza el envío de datos desde CPU a GPU.\\
+Con este fin se ha implementado en \robotto tres elementos muy relacionados entre sí.\\
+\begin{itemize}
+\item En primer lugar se tienen los \textbf{Uniforms}, que no son si no una representación de los \textit{uniforms} usados en los \textit{Shader Programs}.\\
+Dichos Uniforms poseen, entre otras cosas, dos campos fundamentales que hacen posible la comunicación
+\begin{itemize}
+\item El \texttt{UniformType}, que determina el tipo uniform al que se hace referencia, como podría ser la matriz de proyección o la \textit{ModelView Matrix}.\\
+Podría pensarse que este papel ya es desempeñado por el nombre del uniform dentro del \textit{Shader Program}, sin embargo, definiendo el tipo del Uniform de esta forma permite que distintos \textit{Shader Programs} puedan requerir un mismo Uniform sin necesidad de que su código presente las mismas variables obligatoriamente.
+\item El \texttt{UniformId} representa el identificador dado por la GPU de la variable \textit{uniform} en cuestión.
+\end{itemize}
+\item Por otra parte se tienen los \textbf{UniformGenerators}, estos elementos tienen como función principal asignarle a cada objeto la funcionalidad necesaria para generar los valores de los Uniforms que este objeto sea el encargado de producir. Por ejemplo, la cámara será la encargada de producir la \textit{View Matrix} pero no la \textit{Model View Matrix} ya que esta depende de la cámara y también de la \textit{Model Matrix}, la cuál es generada por un modelo.\\
+Todo UniformGenerator poseera un identificador único dentro del conjunto de generadores de un objeto individual.
+\item Por último está el elemento que actúa como puente entre los dos anteriormente detallados, los \textbf{UniformKeys}.\\
+Entre las funciones de los UniformKeys las más destacables son:
+\begin{itemize}
+\item Almacenar el valor de los uniforms generados en los UniformGenerators.
+\item Proporcionar información acerca de los uniforms que un objeto es capaz de generar.\\
+De esta última afirmación se deduce que todo UniformKey ha de tener asociado obligatoriamente un UniformGenerator
+\end{itemize}
+Para conseguirlo el UniformKey cuenta con un campo que le permite enlazarse con el objeto Uniform, el ya comentado \texttt{UniformType} y por otra parte, otro campo que le permita comunicarse con su UniformGenerator asociado.
+\end{itemize}
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.4]{uniformsgeneratorsandkeys.png}
+\end{center}
+\caption[Funcionamiento de UniformKeys y UniformsGenerators]{Funcionamiento de UniformKeys y UniformsGeneratos.\\
+1. Búsqueda del objeto con el UniformType capaz de generar el Uniform dado.\\
+2. Búsqueda dentro del objeto del UniformGenerator asociado al UniformKey.\\
+3. Generación del valor del Uniform.\\
+4. Almacenamiento del valor dentro del UniformKey.\\
+5. Envío a la GPU el valor del Uniform generado.}
+\label{fig:unifkeysandgen}
+\end{figure}
+
+De estos elementos, tanto Uniforms como UniformKeys son proporcionados por el fichero MRR como una parte más de un objeto, sin embargo, los UniformGenerators, son proporcionados vía código. Algunos de estos UniformGenerators, o al menos, los más usuales son provistos por el propio motor, sin embargo, la API ofrece la posibilidad de que el usuario pueda crear un nuevo UniformGenerator así como modificar el comportamiento de alguno ya existente tal y como se explica en.\\
+TODO: Dar la referencia en el documento de como crear un uniform generator\\
+
+TODO: Explicar los niveles
+
+TODO: Explicar caso del MVP
+
+\subsection{La Necesidad del Rendering Context}
+El \textbf{Rendering Context} es el elemento encargado de dar sentido al cruce de datos generados al dibujar la escena.\\
+
+Además 
+
+\subsection{Eventos}
+
+\subsection{Algoritmo de Renderizado}
+TODO: Agregar referencia a object centric
+
+Ahora que se han tratado todos los conceptos fundamentales que definen el funcionamiento del motor se puede establecer el comportamiento del ciclo del renderizado desde su inicialización hasta la generación de la imagen final.
+
+%-----------------------------------
+%	SECTION 2
+%-----------------------------------
+\section{Arquitectura de \robotto}
+
+\subsection{Interfaz de Uso}
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.4]{interfaznucleo.png}
+\end{center}
+\caption[Interfaz del núcleo]{Interfaz del núcleo}
+\label{fig:interfaznucleo}
+\end{figure}
+
+La interfaz de uso está compuesta por los elementos pensados para ser usados por los usuarios de \robotto.\\
+Dichos elementos proveen al usuario de acciones comunes al tratar con objetos en una escena 3D como por ejemplo trasladar un objeto, rotarlo, ejecutar una animación,... U otras funcionalidades más generales como la búsqueda de objetos dentro de una escena, control de la jerarquía o de gestión de eventos.\\
+Además, dichas herramientas son gestionadas de forma muy similar a como se gestiona el ciclo de vida de las aplicaciones Android comúnes, permitiendo mantener un paradigma similar al de la plataforma sobre la que se trabaja, intentando así que el usuario se sienta lo más cómodo posible a la hora de integrar \robotto en su aplicación.\\
+
+\subsubsection{Integración en una Aplicación Android}
+
+A la hora de integrar \robotto dentro de una aplicación Android \rorefrobottoengine\label{ro:robottoengine} es sin duda el primer objeto con el que se encuentra el usuario al usar \robotto. Es el encargado de la gestión del ciclo de vida de este, así como el encargado de gestionar los recursos usados y referencias a estos.\\
+\begin{center}
+\includegraphics[scale=0.7]{mrrobottoengine.png}
+\end{center}
+
+Para inicializar una instancia de esta clase el usuario requerirá por una parte de un \textit{Context} de la plataforma Android, como podría ser una \textit{Activity} y por otra una referencia a una instancia a una \textit{View} especial \rorefsurfaceview\label{ro:surfaceview}, será en esta \textit{View} donde se mostrará el contenido.\\
+
+Una vez se ha obtenido una referencia un objeto de la clase \rorefrobottoengine el siguiente paso consiste en cargar una escena desde un \textit{stream} de datos. Este \textit{stream} de datos ha de contener datos en el formato propio soportado por \robotto y especificado en \ref{AppendixA}.\\
+La carga de estos datos puede realizarse de dos formas distintas, bloqueante o no bloqueante, mediante los métodos \rorefm{MrRobottoEngine}{loadSceneTree-java.io.InputStream-}{loadSceneTree} y \rorefm{MrRobottoEngine}{loadSceneTreeAsync-java.io.InputStream-}{loadSceneTreeAsync} respectivamente.\\
+
+Cuando la carga de datos haya finalizado se llamará automáticamente al método \rorefm{MrRobottoEngine}{onInitialize--}{onInitialize}, este método está pensado para ser sobrescrito en clases que hereden de \rorefrobottoengine ya que proporciona un entorno seguro para acceder a la escena, sus objetos y proporcionar código de iniciación.\\
+
+\subsection{Objetos de la Escena}
+
+\subsubsection{MrSceneTree}\label{susec:MrSceneTree}
+
+Una vez hemos cargado la escena que usaremos nos interesa conocer los distintos objetos que pueden utilizarse.\\
+Aquí se presenta la jerarquía de los posibles objetos presentes en una escena.\\
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.8]{robottohierarchy.png}
+\end{center}
+\caption[Jerarquía de MrObject]{Jerarquía de MrObject}
+\label{fig:robottohierarchy}
+\end{figure}
+
+Como se puede apreciar los tenemos una jerarquía con un objeto base y de él dependen el resto de elementos usuales dentro de una escena 3D como podría ser cámaras, modelos o luces
+
+\subsubsection{MrObject}
+\rorefobject\label{ro:object} es la clase base de toda nuestra jerarquía y la que contiene los métodos más genéricos para el control de un objeto de la escena.\\
+A pesar de ser una clase considerablemente importante de cara al uso, esta clase en realidad actúa como un envolvente de una clase de nivel inferior, \textit{MrObjectController}, de la que se hablará más adelante.\\
+
+Las posibles acciones que se pueden realizar con una instancia de \rorefobject podrían dividirse fácilmente en cuatro grupos en función de hacia qué funcionalidad están orientadas.\\
+Estas son o bien métodos genéricos, como podrían ser el constructor u obtener el tipo de objeto, métodos orientados a la gestión de eventos, como agregar o eliminar un evento a procesar, de jerarquía, como acceder a los hijos o al padre de este objeto dentro de la jerarquía de la escena, o de transformación, como puede ser rotar, escalar o trasladar el objeto.\\
+
+TODO: Aumentar el tamaño de la fuente
+\begin{figure}[h!]
+\centering
+\subfloat[Métods Genéricos]{
+  \includegraphics[scale=0.6]{objgeneric.png}
+}
+\subfloat[Métodos de Gestión de Eventos]{
+  \includegraphics[scale=0.6]{objevents.png}
+}
+\hspace{0mm}
+\subfloat[Métodos de Gestión de JerarQuía]{
+  \includegraphics[scale=0.6]{objtree.png}
+}
+\subfloat[Métodos de Transformaciones Geométricas]{
+  \includegraphics[scale=0.6]{objtransform.png}
+}
+\caption[Métodos de MrObject]{Métodos de MrObject agrupados por funcionalidad.}
+\label{fig:metodosmrobject}
+\end{figure}
+
+\subsubsection{MrModel, MrCamera, MrLight y MrScene}
+
+\subsection{Núcleo}
+TODO: Agregar como se pasan los uniforms.
+
+\subsection{El SceneTree}
+TODO:
+
+\subsection{Estructura de los Objetos}
+TODO: Explicar como se estructura el núcleo. 
+Aunque se tratará en profundidad en la sección de diseño justificar que haya una estructura de Model-Renderer-Controller en cada objeto y encima de ello un envolvente más que proporcione thread-safety
+
+\subsubsection{Contenedores de Datos}
+TODO: Explicar que su principal función es la de almacenar los datos y punto, si acaso para cada tipo de dato comentar los atributos más relevantes
+\subsubsection{Renderizadores}
+TODO: Aunque realmente ahora mismo solo tiene una verdadera funcionalidad el renderizador de los modelos, en teoría deberían servir para cosas como post-procesado de la escena, por ejemplo, en la cámara añadir que realice un efecto como pasar la imagen a blanco y negro
+Aquí se realizan todas las llamadas a OpenGL
+\subsubsection{Controladores}
+TODO: Comentar que este es el punto de union de datos y renderizadores, así como de la gestión de eventos, inicialización,...
+Aunque únicamente delega funcionalidades, es importante porque coordina a las distintas partes
+
+
+\subsection{MrObjectController}
+
+\subsection{MrModelController y sus Componentes}
+\subsubsection{Mallas 3D}
+TODO: Comentar campos importantes como los VBO e IBO, y como relaciona cada campo de los buffers con los atributos del shader program (este "enlace" entre datos viene especificado en el fichero MRR)
+TODO:Agregar como se pasan los attributes\\
+\subsubsection{Shaders}
+TODO: Shaders, Attributes, Uniforms y Generadores de Uniforms (estos últimos tienen especial interés ya que gracias a ellos en un cierto objeto dado podemos generar un uniform y relacionarlo con un uniform del shader, explicar ese enlace en profundidad en la sección de renderizadores)
+\subsubsection{Materiales y Texturas}
+TODO:
+\subsubsection{Animación}
+TODO:Explicar cosas como a partir de los KeyFrames importados desde el fichero se interpola la pose, así como la estructura de un esqueleto, los huesos,...
+
+
+
+\subsection{Paquete de Herramientas}
+Entre las utilidades más relevantes para el funcionamiento de \robotto cabe destacar el papel de los cargadores de datos, encargados de transformar los ficheros \textit{".mrr"} a la estructura interna del motor, así como las distintas clases encargadas de representar estructuras de datos específicamente implementadas para acomodar los datos usados.
+
+\subsubsection{Cargadores de Datos}
+TODO: Explicar como funciona la carga de datos y cómo se realiza una carga paralela de por ejemplo los JSON y las texturas
+
+\subsection{Paquete de Estructuras de Datos}
+Para la implementación de partes esenciales de la arquitectura, como por ejemplo, la construcción de la propia escena, se requerían de ciertas estructuras de datos específicas para la aplicación.\\
+Este es el caso de \textbf{MrTreeMap}, clase 
+
+Las siguientes estructuras de datos aquí presentadas han sido pensadas tanto como para representar los datos requeridos así como una gran rapidez a la hora de acceder a ellos y realizar búsquedas.\\
+Con ese fin se ha desarrollado una herramienta auxiliar denominada \textbf{MrMapFunction}.\\
+Esta sencilla clase permite realizar un mapeo directo entre los objetos contenidos en las estructuras y las llaves asociadas a ellos.
+$$\text{Object}\mapsto \text{Key}$$
+
+
+TODO: Comentar las estructuras de datos implementadas, la más relevante, el árbol que luego usas como base clase para implementar el SceneTree
+
+\subsection{Paquete Matemático}
+\subsubsection{MrLinearAlgebraObject}
+\textbf{MrLinearAlgebraObject} es la interfaz principal de todos los objetos que necesiten por una parte, almacenar datos numéricos, como podrían ser ls componentes de un vector, una matriz,... y por otra usarse como interfaz a la hora de transmitir datos desde la aplicación a la GPU en forma de \textit{uniforms}.
+TODO: Clase base de los elementos matemáticos, y no matemáticos, pues será la clase fundamental para poder pasarlos como uniforms
+TODO: Comentar la alta optimización de las operaciones
+\subsubsection{Matrices}
+\subsubsection{Cuaterniones}
+\subsubsection{Vectores}
+\subsubsection{MrTransforms}
+TODO: Clase base de las transformaciones geométricas, comentar cómo se combinan las clases anteriores para ofrecer operaciones tales como rotar alrededor de un punto
+
+
+\subsection{Eventos}
+TODO: Gestión de eventos con mayor detalle, como la interfaz EventListener y EventDispatcher
+
+
+\section{Conclusiones y Posibles Mejoras}
+
+TODO: Compartir modelos, mejorar el formato mrr, mala elección de org.json
