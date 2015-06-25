@@ -340,20 +340,74 @@ La figura del controlador es la encargada de coordinar y dar sentido a todos los
 \label{fig:controlleresquema}
 \end{figure}
 
-\subsection{MrObjectController y sus Componentes}
+Como se puede apreciar en el esquema se comunican tanto con la capa de datos como la del renderizado, además proporciona un contexto válido a los \rorefobject y a los \rorefeventlistener.\\
+
+Todos los controladores deben heredar de la clase \rorefobjectcontroller y se encuentran dentro del paquete \roref{engine/code/controller/package-summary}{mr.robotto.engine.core.controller}\\
+
+\subsection{Componentes}
+Los componentes son elementos especiales dentro de \robotto encargados de almacenar datos y comunicarse con la GPU.\\
+Aunque los componentes puedan resultar similares en funcionalidad a los objetos de la escena la diferencia radica en que los componentes tienen un uso casi exclusivo a nivel interno del motor.\\
+Los componentes además disfrutan de una estructura interna que sigue el patrón MVC, aunque en su caso, y por motivos de simplificación, la capa de datos y renderizado se han implementado como clases internas y siendo el controlador una interfaz a estas dos.\\
+
+Así pues, la finalidad de estos elementos es la de conformar los atributos de la capa de datos de los objetos de la escena y simplificar el código del renderizado.
+
+\subsection{MrObjectController}
 
 \subsection{MrModelController y sus Componentes}
 \subsubsection{Mallas 3D}
-TODO: Comentar campos importantes como los VBO e IBO, y como relaciona cada campo de los buffers con los atributos del shader program (este "enlace" entre datos viene especificado en el fichero MRR)
-TODO:Agregar como se pasan los attributes\\
-\subsubsection{Shaders}
-TODO: Shaders, Attributes, Uniforms y Generadores de Uniforms (estos últimos tienen especial interés ya que gracias a ellos en un cierto objeto dado podemos generar un uniform y relacionarlo con un uniform del shader, explicar ese enlace en profundidad en la sección de renderizadores)
+Las mallas 3D, o como se han denominado en \robotto, \rorefmesh, son componententes pertenecientes a los modelos.\\
+Son los encargados de enviar los datos relativos a los vértices a la GPU.\\
+Para representar una malla harán falta dos elementos fundamentales:
+
+\begin{itemize}
+\item Los Vertex Buffer Objects (VBO), que son listas de datos numéricos encargados de almacenar la información de cada uno de los vértices, como las coordenadas donde se encuentra, las normales, el índice del material que usan,...
+\item Los Index Buffer Objects (IBO), que son listas de índices que indican el orden en el que los vértices deben ser leídos.
+\end{itemize}
+
+Estos buffers en la implementación son los denominados \rorefbuffer.
+
+Ahora bien, los VBOs representan los datos de una forma no estructurada y se requiere poder diferenciar los distintos datos contenidos en ellos, con este fin existen los \rorefbufferkey.\\
+Los \rorefbufferkey son los encargados de determinar en qué índice del VBO empieza y acaba un dato específico de un vértice.\\
+Dentro de sus atributos importantes están:
+\begin{itemize}
+\item \texttt{Pointer}: Índice del buffer de la primera aparición de un cierto dato.
+\item \texttt{Size}: Tamaño del dato
+\item \texttt{Stride}: Número de elementos el inicio de un cierto tipo de dato y su siguiente aparición.
+\end{itemize}
+
+Por ejemplo:\\
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=1]{interleaved2.png}
+\end{center}
+\caption[Estructura de un VBO]{Estructura de un VBO.\\ V representa las coordenadas del vértice, N su normal y TC sus coordenadas de textura}
+\label{interleaved2}
+\end{figure}
+
+En la figura \ref{interleaved2} se aprecian tres tipos de datos almacenados en el buffer, luego sus valores de \texttt{Pointer}, \texttt{Size} y \texttt{Stride} son:
+\begin{itemize}
+\item Para las coordenadas:\\
+Su \texttt{Pointer} es 0 ya que en el 0 tenemos su primera aparición, su \texttt{Size} es de 3, mientras que el \texttt{Stride} es de 8 ya que hasta la octava posición no vuelve a haber un bloque de coordenadas
+
+\item Para las normales:\\
+Su \texttt{Pointer} es 3, su \texttt{Size} es de 3, y su \texttt{Stride} es de 8.
+
+\item Para las texturas:\\
+Su \texttt{Pointer} es 6, su \texttt{Size} es de 2, y su \texttt{Stride} es de 8.
+\end{itemize}
+
+Así pues, gracias a estos dos objetos, \rorefbuffer y \rorefbufferkey, una malla tridimensional es capaz de enviar la información necesaria a los vértices a la GPU
+ 
 \subsubsection{Materiales y Texturas}
 TODO:
 \subsubsection{Animación}
 TODO:Explicar cosas como a partir de los KeyFrames importados desde el fichero se interpola la pose, así como la estructura de un esqueleto, los huesos,...
 
+\subsubsection{Shader Program}
+Unos de los componentes más importantes dentro de los modelos son los Shader Programs, pues son los encargados
 
+
+TODO: Shaders, Attributes, Uniforms y Generadores de Uniforms (estos últimos tienen especial interés ya que gracias a ellos en un cierto objeto dado podemos generar un uniform y relacionarlo con un uniform del shader, explicar ese enlace en profundidad en la sección de renderizadores)
 
 \subsection{Paquete de Herramientas}
 Entre las utilidades más relevantes para el funcionamiento de \robotto cabe destacar el papel de los cargadores de datos, encargados de transformar los ficheros \textit{".mrr"} a la estructura interna del motor, así como las distintas clases encargadas de representar estructuras de datos específicamente implementadas para acomodar los datos usados.
@@ -369,9 +423,6 @@ Las siguientes estructuras de datos aquí presentadas han sido pensadas tanto co
 Con ese fin se ha desarrollado una herramienta auxiliar denominada \textbf{MrMapFunction}.\\
 Esta sencilla clase permite realizar un mapeo directo entre los objetos contenidos en las estructuras y las llaves asociadas a ellos.
 $$\text{Object}\mapsto \text{Key}$$
-
-
-TODO: Comentar las estructuras de datos implementadas, la más relevante, el árbol que luego usas como base clase para implementar el SceneTree
 
 \subsection{Paquete Matemático}
 \subsubsection{MrLinearAlgebraObject}

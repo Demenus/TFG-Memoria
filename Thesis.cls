@@ -187,11 +187,19 @@
 
 \newcommand{\rorefobject}[0]{\roref{sceneobjects}{MrObject}}
 
+\newcommand{\rorefeventlistener}[0]{\roref{engine/events/MrEventListener}{MrEventListener}}
+
 \newcommand{\rorefobjectdata}[0]{\roref{engine/core/data/MrObjectData}{MrObjectData}}
 
 \newcommand{\rorefobjectrender}[0]{\roref{engine/core/renderer/MrObjectRender}{MrObjectRender}}
 
+\newcommand{\rorefobjectcontroller}[0]{\roref{engine/core/controller/MrObjectController}{MrObjectController}}
 
+\newcommand{\rorefmesh}[0]{\roref{engine/components/comp/MrMesh}{MrMesh}}
+
+\newcommand{\rorefbuffer}[0]{\roref{engine/components/data/MrBuffer}{MrBuffer}}
+
+\newcommand{\rorefbufferkey}[0]{\roref{engine/components/data/MrBufferKey}{MrBufferKey}}
 
 
 %----------------------------------------------------------------------------------------
