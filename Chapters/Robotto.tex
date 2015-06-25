@@ -71,15 +71,14 @@ Toda la información acerca del formato y cómo está organizada la información
 
 \subsection{El SceneTree}
 El SceneTree es la estructura fundamental de almacenamiento de los objetos de la escena.\\
-Posee una estructura de árbol donde cada nodo puede tener un número variable de hijos, pero lo que lo diferencia de una estructura de árbol normal es que sus nodos se encuentran indexados tanto por nombre como por tipo, permitiendo así realizar búsquedas dentro de la estructura en $O(1)$\\
+Posee una estructura de árbol donde cada nodo puede tener un número variable de hijos, pero lo que lo diferencia de una estructura de árbol normal es que sus nodos se encuentran indexados tanto por el nombre del dato almacenado en el nodo como por su tipo, permitiendo así realizar búsquedas dentro de la estructura en $O(1)$\\
 Su funcionamiento se explicará de forma detallada en \ref{susec:MrSceneTree}
 
 \subsection{Elementos de una Escena}
 Para los elementos constituyentes de una escena 3D se decidió emular el diseño de componentes de otros motores 3D a la vez que la necesidad de que la API fuese lo más sencilla y funcional que se pudiera.\\
 
-TODO: Cambiar esto  a una lista
 \subsubsection{Object}
-Esta clase servirá de base para la jerarquía de los objetos de la escena, y en él ser verán reflejados todas las acciones compartidas. A saber:
+Los objetos genéricos tienen la función de ser la base de la jerarquía del resto de objetos de la escena, y en él ser verán reflejados todas las acciones compartidas. A saber:
 
 \begin{itemize}
 \item Gestión de las transformaciones geométricas:\newline
@@ -109,11 +108,11 @@ En otros motores los esqueletos suelen manejarse de forma independiente al resto
 Las texturas y materiales utilizados en cada modelo, aunque puedan ser compartidos entre multipes modelos, es tarea de cada uno el controlar la textura o material usado en cada momento.
 \end{itemize}
 
-\subsubsection{Camera}
+\subsubsection{Cámaras y Luces}
 La cámara es el objeto de escena encargado de proporcionar el punto de vista a través del cual será visualizado el mundo.\\
 Además de ello también ofrece el tipo de proyección a utilizar, a escoger entre ortogonal y perspectiva.\\
 
-\subsubsection{Light}
+Por otra parte las luces son los objetos de la escena encargados de proporcionar la iluminación \\
 
 \subsubsection{Scene}
 Posiblemente este es el objeto más conflictivo conceptualmente ya que no parece posible que la escena sea considerada como un objeto de la escena, sin embargo hay una justificación para esta decisión.\\
@@ -164,16 +163,55 @@ TODO: Explicar los niveles
 TODO: Explicar caso del MVP
 
 \subsection{La Necesidad del Rendering Context}
-El \textbf{Rendering Context} es el elemento encargado de dar sentido al cruce de datos generados al dibujar la escena.\\
+El \textbf{Rendering Context} es el elemento encargado organizar y optimizar los datos utilizados al dibujar la escena.\\
 
-Además 
+Una de sus principales funcionalidades es la de controlar la lista de UniformKeys requeridos por cada objeto a la hora del renderizado.
+
+Además también posee un papel vital de cara al rendimiento, pues es el encargado de minimizar los cambios de estados de la GPU. Esto se consigue por una parte realizando una ordenación previa de los objetos de la escena, haciendo que el coste de todos los cambios de estados a realizar durante la generación de un frame sea el menor posible y por otra parte, controlando qué elementos se encuentran presentes en la GPU, tarea desempeñada por el Rendering Context.\\
+
+Por ejemplo, se ordenan todos los modelos que posean la misma textura, esta se envía una única vez a la GPU y es usada por todos estos modelos de, de esa forma se minimizará el número de cambio de texturas.\\
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.4]{renderingcontext.png}
+\end{center}
+\caption[Ejemplo del funcionamiento del Rendering Context]{Ejemplo del funcionamiento del Rendering Context}
+\label{fig:renderingcontext}
+\end{figure}
 
 \subsection{Eventos}
 
 \subsection{Algoritmo de Renderizado}
-TODO: Agregar referencia a object centric
+Ahora que se han tratado todos los conceptos fundamentales que definen el funcionamiento del motor se puede establecer el comportamiento del ciclo del renderizado desde su inicialización hasta la generación de la imagen final.\\
 
-Ahora que se han tratado todos los conceptos fundamentales que definen el funcionamiento del motor se puede establecer el comportamiento del ciclo del renderizado desde su inicialización hasta la generación de la imagen final.
+En primer lugar se presenta el esquema de inicialización de los elementos gráficos.\\
+Como se puede apreciar en primer lugar se inicializan todos los objetos uno a uno, se hacen llamadas a la GPU como podrían ser compilaciones de Shader Programs o configuración de texturas,
+tras ello se acude al RenderingSorter, encargado de ordenar los objetos de la escena en función del coste de los cambios de estado en la GPU.
+Finalmente se realizan las inicializaciones que requieran conocer el tamaño de la ventana 
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.6]{initrender.png}
+\end{center}
+\caption[Inicialización de Recursos para el Renderizado]{Inicialización de Recursos para el Renderizado}
+\label{fig:initrender}
+\end{figure}
+
+En el caso del renderizado de un frame lo primero que se realiza es actualizar el objeto según los eventos recibidos.\\
+Tras ello tomamos el primer modelo de la lista de modelos ordenados generados en la inicialización y cargamos en la lista de UniformKeys todos los UniformKeys de este modelo y del resto de objetos activos, a saber: la cámara actual, las luces y la escena.\\
+Una vez todos los UniformKeys han sido ordenados por nivel de dependencias se generan los valores de estos en los UniformGenerators y se envían a la GPU.
+
+TODO: Editar y agregar la columna de model, recuerda que es para cada modelo
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.7]{renderrender.png}
+\end{center}
+\caption[Renderizado de un Frame]{Renderizado de un Frame}
+\label{fig:renderrender}
+\end{figure}
+
+
+
 
 %-----------------------------------
 %	SECTION 2
@@ -201,19 +239,23 @@ A la hora de integrar \robotto dentro de una aplicación Android \rorefrobottoen
 \includegraphics[scale=0.7]{mrrobottoengine.png}
 \end{center}
 
-Para inicializar una instancia de esta clase el usuario requerirá por una parte de un \textit{Context} de la plataforma Android, como podría ser una \textit{Activity} y por otra una referencia a una instancia a una \textit{View} especial \rorefsurfaceview\label{ro:surfaceview}, será en esta \textit{View} donde se mostrará el contenido.\\
+Para inicializar una instancia de esta clase el usuario requerirá por una parte de un \textit{Context} de la plataforma Android, como podría ser una \textit{Activity} y por otra una referencia a una instancia de \rorefsurfaceview\label{ro:surfaceview}, esta clase hereda de la clase \textit{View} de la plataforma Android y será donde se mostrará el contenido.\\
 
-Una vez se ha obtenido una referencia un objeto de la clase \rorefrobottoengine el siguiente paso consiste en cargar una escena desde un \textit{stream} de datos. Este \textit{stream} de datos ha de contener datos en el formato propio soportado por \robotto y especificado en \ref{AppendixA}.\\
-La carga de estos datos puede realizarse de dos formas distintas, bloqueante o no bloqueante, mediante los métodos \rorefm{MrRobottoEngine}{loadSceneTree-java.io.InputStream-}{loadSceneTree} y \rorefm{MrRobottoEngine}{loadSceneTreeAsync-java.io.InputStream-}{loadSceneTreeAsync} respectivamente.\\
+Una vez se ha obtenido una referencia a un objeto de la clase \rorefrobottoengine el siguiente paso consiste en cargar una escena desde un \textit{stream} de datos. Este \textit{stream} de datos ha de contener datos en el formato MRR.\\
+La carga de estos datos puede realizarse de dos formas distintas, de forma bloqueante o de forma no bloqueante, para ello se usarán los métodos \rorefm{MrRobottoEngine}{loadSceneTree-java.io.InputStream-}{loadSceneTree} y \rorefm{MrRobottoEngine}{loadSceneTreeAsync-java.io.InputStream-}{loadSceneTreeAsync} respectivamente.\\
 
 Cuando la carga de datos haya finalizado se llamará automáticamente al método \rorefm{MrRobottoEngine}{onInitialize--}{onInitialize}, este método está pensado para ser sobrescrito en clases que hereden de \rorefrobottoengine ya que proporciona un entorno seguro para acceder a la escena, sus objetos y proporcionar código de iniciación.\\
 
 \subsection{Objetos de la Escena}
+Una vez hemos cargado la escena que usaremos nos interesa conocer los distintos objetos que pueden utilizarse.\\
 
 \subsubsection{MrSceneTree}\label{susec:MrSceneTree}
+El objeto \rorefscenetree es la interfaz que se le ofrece al usuario para acceder a la escena.\\
+Este es el punto de entrada a la hora de acceder a cualquier objeto.
 
-Una vez hemos cargado la escena que usaremos nos interesa conocer los distintos objetos que pueden utilizarse.\\
-Aquí se presenta la jerarquía de los posibles objetos presentes en una escena.\\
+
+\subsubsection{MrObject}
+\rorefobject\label{ro:object} es la clase base de toda nuestra jerarquía y la que contiene los métodos más genéricos para el control de un objeto de la escena.\\
 \begin{figure}[h!]
 \begin{center}
 \includegraphics[scale=0.8]{robottohierarchy.png}
@@ -221,15 +263,10 @@ Aquí se presenta la jerarquía de los posibles objetos presentes en una escena.
 \caption[Jerarquía de MrObject]{Jerarquía de MrObject}
 \label{fig:robottohierarchy}
 \end{figure}
-
-Como se puede apreciar los tenemos una jerarquía con un objeto base y de él dependen el resto de elementos usuales dentro de una escena 3D como podría ser cámaras, modelos o luces
-
-\subsubsection{MrObject}
-\rorefobject\label{ro:object} es la clase base de toda nuestra jerarquía y la que contiene los métodos más genéricos para el control de un objeto de la escena.\\
 A pesar de ser una clase considerablemente importante de cara al uso, esta clase en realidad actúa como un envolvente de una clase de nivel inferior, \textit{MrObjectController}, de la que se hablará más adelante.\\
 
-Las posibles acciones que se pueden realizar con una instancia de \rorefobject podrían dividirse fácilmente en cuatro grupos en función de hacia qué funcionalidad están orientadas.\\
-Estas son o bien métodos genéricos, como podrían ser el constructor u obtener el tipo de objeto, métodos orientados a la gestión de eventos, como agregar o eliminar un evento a procesar, de jerarquía, como acceder a los hijos o al padre de este objeto dentro de la jerarquía de la escena, o de transformación, como puede ser rotar, escalar o trasladar el objeto.\\
+Las posibles acciones que se pueden realizar con una instancia de \rorefobject podrían dividirse en cuatro grupos según su funcionalidad.\\
+Estas son o bien métodos genéricos, como podrían ser el constructor u obtener el tipo de objeto, métodos orientados a la gestión de eventos, como agregar o eliminar un evento a procesar, de jerarquía, como acceder a los hijos o al padre de un objeto, o de transformación, como puede ser rotar, escalar o trasladar el objeto.\\
 
 TODO: Aumentar el tamaño de la fuente
 \begin{figure}[h!]
@@ -253,27 +290,57 @@ TODO: Aumentar el tamaño de la fuente
 
 \subsubsection{MrModel, MrCamera, MrLight y MrScene}
 
-\subsection{Núcleo}
-TODO: Agregar como se pasan los uniforms.
+\subsection{Eventos}
+TODO: Gestión de eventos con mayor detalle, como la interfaz EventListener y EventDispatcher
 
-\subsection{El SceneTree}
-TODO:
 
 \subsection{Estructura de los Objetos}
-TODO: Explicar como se estructura el núcleo. 
-Aunque se tratará en profundidad en la sección de diseño justificar que haya una estructura de Model-Renderer-Controller en cada objeto y encima de ello un envolvente más que proporcione thread-safety
+Como se ha comentado ya durante este documento, la clase \rorefobject y todas sus subclases, son interfaces de una estructura subyacente encargada de administrar los objetos de la escena, tanto desde la gestión de eventos, pasando por el renderizado, como la gestión de los datos del objeto de la escena.\\
+Dicha estructura podría verse compuesta por tres partes diferenciadas.
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.5]{mdr.png}
+\end{center}
+\caption[Estructura interna de los objetos]{Estructura interna de los objetos.}
+\label{fig:mdr}
+\end{figure}
+
+Tal y como se puede apreciar en la figura \ref{fig:mdr} la estructura emula al patrón modelo-vista-controlador(MVC), y eso es precisamente lo que se buscaba, tres partes diferenciadas y cada una con unas responsabilidades definidas.
 
 \subsubsection{Contenedores de Datos}
-TODO: Explicar que su principal función es la de almacenar los datos y punto, si acaso para cada tipo de dato comentar los atributos más relevantes
+Los contenedores de datos serían la parte del modelo dentro del patrón MVC, su funcionalidad está restringida a almacenar datos necesarios del objeto que serán requeridos o bien por el controlador o bien por la parte del renderizador.\\
+Todos los elementos contenedores de datos requieren que se herede de la clase \rorefobjectdata\\
+Todos los contenedores de datos se encuentran dentro del paquete \roref{engine/core/data/package-summary}{mr.robotto.engine.core.data}
 \subsubsection{Renderizadores}
-TODO: Aunque realmente ahora mismo solo tiene una verdadera funcionalidad el renderizador de los modelos, en teoría deberían servir para cosas como post-procesado de la escena, por ejemplo, en la cámara añadir que realice un efecto como pasar la imagen a blanco y negro
-Aquí se realizan todas las llamadas a OpenGL
+Los renderizadores hacen la función de la vista dentro del patrón MVC. Se encargan de tomar datos desde el modelo y presentarla como se requiera.\\
+Los renderizadores están pensados para que todas las llamadas a OpenGL sean ejecutadas desde aquí, de esta forma todas las llamadas a la API se encontrarán concentradas en unas clases determinadas, lo cuál resulta muy beneficioso en cuanto a mantenibilidad de código se refiere.\\
+Todos los objetos que se encarguen del renderizado deben implementar una cierta interfaz denominada \rorefobjectrender en la cuál es necesario implementar los siguientes métodos
+
+\begin{itemize}
+\item \texttt{void initializeRender(MrRenderingContext context, MrObjectData link)}\\
+En este método al renderer se le asignan el rendering context sobre el cuál trabajará y además el objeto al que estará asociado.\\ 
+Además en este método se inicia el objeto desde el punto de vista gráfico, es decir, se realizan tareas tales como configurar texturas, compilar Shader Programs y similares.
+\item \texttt{void initializeSizeDependant(int w, int h)}\\
+En este método se inician los recursos que dependan del tamaño de la ventana usada en ese momento.
+\item \texttt{boolean isInitialized()}\\
+Simplemente comprueba si el renderizador ha sido iniciado
+\item \texttt{void render()}\\
+Este método es el encargado de pasar datos a la tarjeta gráfica en cada frame.
+\end{itemize}
+Todos los renderizadores de objetos se encuentran dentro del paquete \roref{engine/core/render/package-summary}{mr.robotto.engine.core.render}
 \subsubsection{Controladores}
-TODO: Comentar que este es el punto de union de datos y renderizadores, así como de la gestión de eventos, inicialización,...
-Aunque únicamente delega funcionalidades, es importante porque coordina a las distintas partes
+La figura del controlador es la encargada de coordinar y dar sentido a todos los elementos que, en conjunto, conformen un objeto de la escena. 
 
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.5]{controlleresquema.png}
+\end{center}
+\caption[Elementos destacables de MrObjectController]{Elementos destacables de MrObjectController}
+\label{fig:controlleresquema}
+\end{figure}
 
-\subsection{MrObjectController}
+\subsection{MrObjectController y sus Componentes}
 
 \subsection{MrModelController y sus Componentes}
 \subsubsection{Mallas 3D}
@@ -318,8 +385,6 @@ TODO: Comentar la alta optimización de las operaciones
 TODO: Clase base de las transformaciones geométricas, comentar cómo se combinan las clases anteriores para ofrecer operaciones tales como rotar alrededor de un punto
 
 
-\subsection{Eventos}
-TODO: Gestión de eventos con mayor detalle, como la interfaz EventListener y EventDispatcher
 
 
 \section{Conclusiones y Posibles Mejoras}

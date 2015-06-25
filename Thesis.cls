@@ -180,8 +180,17 @@
 %  LIST OF DOCUMENTATION IN ORDER OF APPAREANCE
 %----------------------------------------------------------------------------------------
 \newcommand{\rorefrobottoengine}[0]{\roref{MrRobottoEngine}{MrRobottoEngine}}
+
 \newcommand{\rorefsurfaceview}[0]{\roref{engine/ui/MrSurfaceView}{MrSurfaceView}}
+
+\newcommand{\rorefscenetree}[0]{\roref{scenetree/MrSceneTree}{MrSceneTree}}
+
 \newcommand{\rorefobject}[0]{\roref{sceneobjects}{MrObject}}
+
+\newcommand{\rorefobjectdata}[0]{\roref{engine/core/data/MrObjectData}{MrObjectData}}
+
+\newcommand{\rorefobjectrender}[0]{\roref{engine/core/renderer/MrObjectRender}{MrObjectRender}}
+
 
 
 
