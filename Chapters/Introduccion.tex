@@ -19,16 +19,16 @@ Por último, y además de todo esto, se ha diseñado un formato de fichero propi
 %-----------------------------------
 %	SECTION 1
 %-----------------------------------
-\section{Historia de \robotto}
-La idea de crear \robotto nace a razón de un proyecto desarrollado en una de las asignaturas del Grado de Ingeniería Informática, es en ese momento donde se fragua la idea de crear un motor de juegos mucho más sofisticado, extensible y robusto, pero sobretodo, de código libre.\\
-El nombre del proyecto surge del primer día en el que empecé a codificar las primeras líneas de código, día en el cuál, mientras visionaba una de mis series favoritas y en la que la canción de apertura se podía escuchar un estribillo pegajoso el cuál decía \textit{"Doumo arigatou Mr. Roboto"}(Muchas gracias Sr. Robot) pues me pareció buena idea tomar de ahí el nombre a forma de homenaje a dicha serie, a la propia casualidad, y al hecho de que era un proyecto pensado para la plataforma Android.
+%\section{Historia de \robotto}
+%La idea de crear \robotto nace a razón de un proyecto desarrollado en una de las asignaturas del Grado de Ingeniería Informática, es en ese momento donde se fragua la idea de crear un motor de juegos mucho más sofisticado, extensible y robusto, pero sobretodo, de código libre.\\
+%El nombre del proyecto surge del primer día en el que empecé a codificar las primeras líneas de código, día en el cuál, mientras visionaba una de mis series favoritas y en la que la canción de apertura se podía escuchar un estribillo pegajoso el cuál decía \textit{"Doumo arigatou Mr. Roboto"}(Muchas gracias Sr. Robot) pues me pareció buena idea tomar de ahí el nombre a forma de homenaje a dicha serie, a la propia casualidad, y al hecho de que era un proyecto pensado para la plataforma Android.
 
 %-----------------------------------
 %	Motivacion
 %-----------------------------------
 
 \section{Objetivos y Motivación}
-TODO:
+TODO: Insertar el abstract en cierto sentido
 
 \section{Tecnologías utilizadas}
 
@@ -49,3 +49,21 @@ Por otra parte, y como ya se comentó, uno de los objetivos era la fácil integr
 Por último se ha evitado el uso de dependencias externas, de forma que \robotto es un proyecto totalmente autocontenido.\\
 
 \subsection{MrRobotto Studio}
+
+Para la parte de la aplicación de \studio se ha decidido usar las siguientes tecnologías:
+
+\begin{itemize}
+\item Django para la parte del servidor
+\item SQLite como base de datos
+\item Android SDK para la parte del cliente
+\item JQuery para las llamadas AJAX
+\item BootStrap para el estilo de la página
+\end{itemize}
+
+La decisión de usar Django como \textit{backend} para la aplicación vino fundamentada por la necesidad de generar código de calidad, de rápido desarrollo y en un lenguaje del mayor alto nivel posible\\
+
+Se consideró Node.js por su capacidad por la necesidad de ofrecer la tecnología de websockets, sin embargo, JavaScript llevaba a una velocidad de desarrollo inferior a la deseada.\\
+
+Era importante conseguir que tanto el dispositivo Android como la interfaz web estuviesen notificados en cada momento de los cambios ocurridos en la otra parte, por ello, para la parte web era necesario usar tecnologías como AJAX.\\
+
+Por último, pero no menos importante, está el tema del estilo, no era viable invertir tiempo modificando estilos de la interfaz web, es por eso que se optó por tecnologías ampliamente utilizadas en el sector web como BootStrap.

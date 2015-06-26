@@ -195,11 +195,27 @@
 
 \newcommand{\rorefobjectcontroller}[0]{\roref{engine/core/controller/MrObjectController}{MrObjectController}}
 
-\newcommand{\rorefmesh}[0]{\roref{engine/components/comp/MrMesh}{MrMesh}}
+\newcommand{\rorefcomponent}[0]{\roref{engine/components/MrComponent}{MrComponent}}
 
-\newcommand{\rorefbuffer}[0]{\roref{engine/components/data/MrBuffer}{MrBuffer}}
+\newcommand{\rorefmesh}[0]{\roref{engine/components/MrMesh}{MrMesh}}
 
-\newcommand{\rorefbufferkey}[0]{\roref{engine/components/data/MrBufferKey}{MrBufferKey}}
+\newcommand{\rorefmaterial}[0]{\roref{engine/components/data/material/MrMaterial}{MrMaterial}}
+
+\newcommand{\roreftexture}[0]{\roref{engine/components/MrTexture}{MrTexture}}
+
+\newcommand{\rorefbuffer}[0]{\roref{engine/components/data/mesh/MrBuffer}{MrBuffer}}
+
+\newcommand{\rorefbufferkey}[0]{\roref{engine/components/data/mesh/MrBufferKey}{MrBufferKey}}
+
+\newcommand{\rorefskeleton}[0]{\roref{engine/components/data/skeleton/MrSkeleton}{MrSkeleton}}
+
+\newcommand{\rorefbone}[0]{\roref{engine/components/data/skeleton/MrBone}{MrBone}}
+
+\newcommand{\rorefframe}[0]{\roref{engine/components/data/action/MrFrame}{MrFrame}}
+
+\newcommand{\rorefkeyframelist}[0]{\roref{engine/components/data/action/MrKeyFrameList}{MrKeyFrameList}}
+
+\newcommand{\rorefskeletalaction}[0]{\roref{engine/components/data/action/MrSkeletalAction}{MrSkeletalAction}}
 
 
 %----------------------------------------------------------------------------------------
@@ -333,6 +349,31 @@
     {\normalsize \facname \par} % Faculty name
     \bigskip
     {\normalsize \degreename\par} % Degree name
+    \bigskip
+    {\normalsize\bf \@title \par} % Thesis title
+    \medskip
+    {\normalsize por \authornames \par} % Author name
+    \bigskip
+  \end{center}
+}
+
+%----------------------------------------------------------------------------------------
+%	ABSTRACT PAGE DESIGN
+%----------------------------------------------------------------------------------------
+\newenvironment{abstracten}
+{
+  \btypeout{Abstract Page}
+  \thispagestyle{empty}
+  \null\vfil
+  \begin{center}
+    \setlength{\parskip}{0pt}
+    {\normalsize \texorpdfstring{\href{http://www.ub.edu}{UNIVERSITY OF BARCELONA}} \par}\\
+    \bigskip
+    {\huge{\textit{Abstract}} \par}
+    \bigskip
+    {\normalsize Faculty of Mathematics \par} % Faculty name
+    \bigskip
+    {\normalsize Double Degree in Computer Engineering and Mathematics\par} % Degree name
     \bigskip
     {\normalsize\bf \@title \par} % Thesis title
     \medskip

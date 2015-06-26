@@ -95,7 +95,7 @@ La inicialización de los objetos de la escena hace referencia a varias acciones
 \end{itemize}
 
 \subsubsection{Model}
-Los modelos 3D son seguramente el elemento más representativos dentro del motor puesto que son los únicos elementos realmente visibles de la escena.\\
+Los modelos 3D son seguramente los elementos más representativos dentro del motor puesto que son los únicos elementos realmente visibles de la escena.\\
 Los modelos no representan únicamente las mallas tridimensionales visibles en el mundo, si no que además engloba otras funcionalidades tales como
 
 \begin{itemize}
@@ -112,7 +112,7 @@ Las texturas y materiales utilizados en cada modelo, aunque puedan ser compartid
 La cámara es el objeto de escena encargado de proporcionar el punto de vista a través del cual será visualizado el mundo.\\
 Además de ello también ofrece el tipo de proyección a utilizar, a escoger entre ortogonal y perspectiva.\\
 
-Por otra parte las luces son los objetos de la escena encargados de proporcionar la iluminación \\
+Por otra parte las luces son los objetos de la escena encargados de proporcionar la iluminación. Las luces soportadas actualmente por \robotto se reducen únicamente a luces puntuales\\
 
 \subsubsection{Scene}
 Posiblemente este es el objeto más conflictivo conceptualmente ya que no parece posible que la escena sea considerada como un objeto de la escena, sin embargo hay una justificación para esta decisión.\\
@@ -131,7 +131,7 @@ Podría pensarse que este papel ya es desempeñado por el nombre del uniform den
 \item El \texttt{UniformId} representa el identificador dado por la GPU de la variable \textit{uniform} en cuestión.
 \end{itemize}
 \item Por otra parte se tienen los \textbf{UniformGenerators}, estos elementos tienen como función principal asignarle a cada objeto la funcionalidad necesaria para generar los valores de los Uniforms que este objeto sea el encargado de producir. Por ejemplo, la cámara será la encargada de producir la \textit{View Matrix} pero no la \textit{Model View Matrix} ya que esta depende de la cámara y también de la \textit{Model Matrix}, la cuál es generada por un modelo.\\
-Todo UniformGenerator poseera un identificador único dentro del conjunto de generadores de un objeto individual.
+Todo UniformGenerator poseerá un identificador único dentro del conjunto de generadores de un objeto individual.
 \item Por último está el elemento que actúa como puente entre los dos anteriormente detallados, los \textbf{UniformKeys}.\\
 Entre las funciones de los UniformKeys las más destacables son:
 \begin{itemize}
@@ -349,7 +349,9 @@ Los componentes son elementos especiales dentro de \robotto encargados de almace
 Aunque los componentes puedan resultar similares en funcionalidad a los objetos de la escena la diferencia radica en que los componentes tienen un uso casi exclusivo a nivel interno del motor.\\
 Los componentes además disfrutan de una estructura interna que sigue el patrón MVC, aunque en su caso, y por motivos de simplificación, la capa de datos y renderizado se han implementado como clases internas y siendo el controlador una interfaz a estas dos.\\
 
-Así pues, la finalidad de estos elementos es la de conformar los atributos de la capa de datos de los objetos de la escena y simplificar el código del renderizado.
+Así pues, la finalidad de estos elementos es la de conformar los atributos de la capa de datos de los objetos de la escena y simplificar el código del renderizado.\\
+
+Todos los componentes deben heredar desde la clase base que se ha definido para este fin: \rorefcomponent
 
 \subsection{MrObjectController}
 
@@ -378,7 +380,7 @@ Dentro de sus atributos importantes están:
 Por ejemplo:\\
 \begin{figure}[h!]
 \begin{center}
-\includegraphics[scale=1]{interleaved2.png}
+\includegraphics[scale=0.5]{interleaved2.png}
 \end{center}
 \caption[Estructura de un VBO]{Estructura de un VBO.\\ V representa las coordenadas del vértice, N su normal y TC sus coordenadas de textura}
 \label{interleaved2}
@@ -397,14 +399,46 @@ Su \texttt{Pointer} es 6, su \texttt{Size} es de 2, y su \texttt{Stride} es de 8
 \end{itemize}
 
 Así pues, gracias a estos dos objetos, \rorefbuffer y \rorefbufferkey, una malla tridimensional es capaz de enviar la información necesaria a los vértices a la GPU
+
+\subsubsection{Materiales}
+Los materiales son los elementos encargados de discernir como afecta la luz a la superficie de la malla. Y se encuentran definidos por la clase \rorefmaterial.\\
+
+Cuando una luz actúa sobre una malla con un cierto material se usan los distintos atributos del material para determinar como este reaccionará ante la luz ambiental, difusa y especular. Por defecto en \robotto la reflexión de la luz se hace mediante \textit{Blinn-Phong} sin embargo el código fuente de los shaders puede modificarse y conseguir así otro tipo de reflexión como toon-shading por ejemplo.
  
-\subsubsection{Materiales y Texturas}
-TODO:
+
+\subsubsection{Texturas}
+Las texturas son un componente opcional de los modelos y se encuentran altamente relacionadas con los materiales pues definen el aspecto de las mallas al ser renderizadas.\\
+Las imágenes utilizadas como texturas proceden del fichero MRR y se almacenan en memoria. Una vez la textura asociada a una imagen es inicializada, y con ello, almacenada en memoria nativa, la imagen es liberada de los recursos del sistema.\\
+Además, y ya que se trabaja sobre sistemas con pocos recursos, se recomienda que dichas imágenes sean siempre dentro de lo posible cuadradas, con lado de medida una potencia de dos y lo más pequeñas posibles. Las medidas usuales y recomendadas son de $256\times 256$ o $512\times 512$.\\
+
+Las texturas vienen definidas dentro de la clase \roreftexture
+
 \subsubsection{Animación}
-TODO:Explicar cosas como a partir de los KeyFrames importados desde el fichero se interpola la pose, así como la estructura de un esqueleto, los huesos,...
+La animación dentro de \robotto es la generada a partir de un esqueleto que afecte a la malla 3D.\\
+Para conseguir esta funcionalidad se requieren múltiples elementos:\\
+
+Por una parte hace falta un esqueleto, que consiste en un conjunto de huesos estructurados de forma jerárquica y donde cada uno actuará sobre un conjunto de vértices de la malla. Además el esqueleto es capaz de controlar las distintas animaciones que tiene asociadas, siendo capaz de proporcionar la localización y rotación de cada hueso a cada frame.\\
+El esqueleto viene definido dentro de la clase \rorefskeleton y como ya se ha dicho se encuentra compuesto por huesos definidos en la clase \rorefbone.\\
+
+Ahora bien, tal y como se ha comentado el esqueleto es capaz de controlar animaciones, pero para generar estas es necesario el uso de otras clases adicionales, estas son:
+
+\begin{itemize}
+\item Los \rorefframe almacenan los frames de la animación. Cada uno tiene una lista de huesos asociados y es la clase encargada de interpolar los keyframes importados de la animación al motor. 
+\item La \rorefkeyframelist es la encargada de almacenar los keyframes importados de la animación. Y va generando los frames a medida que se solicitan. Si el keyframe existe porque ha sido exportado se da este, en otro caso, se interpola a partir del keyframe previo a él y el siguiente.
+\item \rorefskeletalaction refleja una animación producida desde un esqueleto. Almacena la lista de keyframes y es la clase que se encuentra por debajo  
+\end{itemize}
 
 \subsubsection{Shader Program}
-Unos de los componentes más importantes dentro de los modelos son los Shader Programs, pues son los encargados
+Unos de los componentes más importantes dentro de los modelos son los Shader Programs, pues son los encargados de mantener el código que se usará en la GPU a la hora de renderizar.
+
+Se encuentra formada por tres elementos fundamentales:
+\begin{itemize}
+\item Attributes: TODO
+\item Uniforms: TODO
+\item Shaders: TODO
+\end{itemize}
+
+
 
 
 TODO: Shaders, Attributes, Uniforms y Generadores de Uniforms (estos últimos tienen especial interés ya que gracias a ellos en un cierto objeto dado podemos generar un uniform y relacionarlo con un uniform del shader, explicar ese enlace en profundidad en la sección de renderizadores)
@@ -413,6 +447,9 @@ TODO: Shaders, Attributes, Uniforms y Generadores de Uniforms (estos últimos ti
 Entre las utilidades más relevantes para el funcionamiento de \robotto cabe destacar el papel de los cargadores de datos, encargados de transformar los ficheros \textit{".mrr"} a la estructura interna del motor, así como las distintas clases encargadas de representar estructuras de datos específicamente implementadas para acomodar los datos usados.
 
 \subsubsection{Cargadores de Datos}
+%La carga de datos se podría distinguir en tres partes.\\
+%En primer lugar y como punto de entrada 
+
 TODO: Explicar como funciona la carga de datos y cómo se realiza una carga paralela de por ejemplo los JSON y las texturas
 
 \subsection{Paquete de Estructuras de Datos}
@@ -434,10 +471,3 @@ TODO: Comentar la alta optimización de las operaciones
 \subsubsection{Vectores}
 \subsubsection{MrTransforms}
 TODO: Clase base de las transformaciones geométricas, comentar cómo se combinan las clases anteriores para ofrecer operaciones tales como rotar alrededor de un punto
-
-
-
-
-\section{Conclusiones y Posibles Mejoras}
-
-TODO: Compartir modelos, mejorar el formato mrr, mala elección de org.json
