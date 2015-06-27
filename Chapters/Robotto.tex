@@ -112,7 +112,7 @@ Las texturas y materiales utilizados en cada modelo, aunque puedan ser compartid
 La cámara es el objeto de escena encargado de proporcionar el punto de vista a través del cual será visualizado el mundo.\\
 Además de ello también ofrece el tipo de proyección a utilizar, a escoger entre ortogonal y perspectiva.\\
 
-Por otra parte las luces son los objetos de la escena encargados de proporcionar la iluminación. Las luces soportadas actualmente por \robotto se reducen únicamente a luces puntuales\\
+Por otra parte las luces son los objetos de la escena encargados de proporcionar la iluminación. Las luces soportadas actualmente por \robotto se reducen a luces puntuales aunque resulta fácilmente ampliable a otro tipo de luces.\\
 
 \subsubsection{Scene}
 Posiblemente este es el objeto más conflictivo conceptualmente ya que no parece posible que la escena sea considerada como un objeto de la escena, sin embargo hay una justificación para esta decisión.\\
@@ -169,7 +169,7 @@ El \textbf{Rendering Context} es el elemento encargado organizar y optimizar los
 
 Una de sus principales funcionalidades es la de controlar la lista de UniformKeys requeridos por cada objeto a la hora del renderizado.
 
-Además también posee un papel vital de cara al rendimiento, pues es el encargado de minimizar los cambios de estados de la GPU. Esto se consigue por una parte realizando una ordenación previa de los objetos de la escena, haciendo que el coste de todos los cambios de estados a realizar durante la generación de un frame sea el menor posible y por otra parte, controlando qué elementos se encuentran presentes en la GPU, tarea desempeñada por el Rendering Context.\\
+Además también posee un papel vital de cara al rendimiento, pues es el encargado de minimizar los cambios de estados de la GPU. Esto se consigue por una parte realizando una ordenación previa de los objetos de la escena gracias al objeto denominado Rendering Sorter, que es capaz de minimizar el coste de los cambios de estados a realizar durante la generación de un frame, y por otra parte, controlando qué elementos se encuentran presentes en la GPU, tarea desempeñada por el Rendering Context.\\
 
 Por ejemplo, se ordenan todos los modelos que posean la misma textura, esta se envía una única vez a la GPU y es usada por todos estos modelos de, de esa forma se minimizará el número de cambio de texturas.\\
 
@@ -181,16 +181,19 @@ Por ejemplo, se ordenan todos los modelos que posean la misma textura, esta se e
 \label{fig:renderingcontext}
 \end{figure}
 
+Un ejemplo del funcionamiento del Rendering Context en conjunto con el Rendering Sorter puede verse en la figura \ref{fig:renderingcontext}.\\
+De proceder a renderizar los objetos en el orden predeterminado: Model1, Model2 y Model3 hay que notar que se establece en primer lugar Texture1, luego Texture2 y por último Texture1 de nuevo. Como se ha dicho, cambios de una textura a otra resultan operaciones costosas, así que se reorganizan los objetos de forma que al renderizar en el orden Model1, Model3 y Model2 únicamente se produce un cambio de estado en la textura en lugar de dos.
+
 \subsection{Eventos}
+Los eventos dentro de \robotto son implementados 
 TODO:
 
 \subsection{Algoritmo de Renderizado}
-TODO: Modificar la explicación del renderingsorter
 Ahora que se han tratado todos los conceptos fundamentales que definen el funcionamiento del motor se puede establecer el comportamiento del ciclo del renderizado desde su inicialización hasta la generación de la imagen final.\\
 
 En primer lugar se presenta el esquema de inicialización de los elementos gráficos.\\
 Como se puede apreciar en primer lugar se inicializan todos los objetos uno a uno, se hacen llamadas a la GPU como podrían ser compilaciones de Shader Programs o configuración de texturas,
-tras ello se acude al RenderingSorter, encargado de ordenar los objetos de la escena en función del coste de los cambios de estado en la GPU.
+tras ello se acude al RenderingSorter, encargado de ordenar los objetos de la escena en función del coste de los cambios de estado en la GPU.\\
 Finalmente se realizan las inicializaciones que requieran conocer el tamaño de la ventana 
 
 \begin{figure}[h!]
