@@ -185,7 +185,15 @@
 
 \newcommand{\rorefscenetree}[0]{\roref{scenetree/MrSceneTree}{MrSceneTree}}
 
-\newcommand{\rorefobject}[0]{\roref{sceneobjects}{MrObject}}
+\newcommand{\rorefmodel}[0]{\roref{sceneobjects/MrModel}{MrModel}}
+
+\newcommand{\roreflight}[0]{\roref{sceneobjects/MrLight}{MrLight}}
+
+\newcommand{\rorefcamera}[0]{\roref{sceneobjects/MrCamera}{MrCamera}}
+
+\newcommand{\rorefscene}[0]{\roref{sceneobjects/MrScene}{MrScene}}
+
+\newcommand{\rorefobject}[0]{\roref{sceneobjects/MrObject}{MrObject}}
 
 \newcommand{\rorefeventlistener}[0]{\roref{engine/events/MrEventListener}{MrEventListener}}
 
@@ -217,6 +225,36 @@
 
 \newcommand{\rorefskeletalaction}[0]{\roref{engine/components/data/action/MrSkeletalAction}{MrSkeletalAction}}
 
+\newcommand{\rorefattribute}[0]{\roref{engine/components/data/shader/MrAttribute}{MrAttribute}}
+
+\newcommand{\rorefuniform}[0]{\roref{engine/components/data/shader/MrUniform}{MrUniform}}
+
+\newcommand{\rorefshader}[0]{\roref{engine/components/data/shader/MrShader}{MrShader}}
+
+\newcommand{\rorefmrrloader}[0]{\roref{engine/loader/file/MrMrrLoader}{MrMrrLoader}}
+
+\newcommand{\rorefresources}[0]{\roref{engine/loader/MrResources}{MrResources}}
+
+\newcommand{\rorefrobottojsonloader}[0]{\roref{engine/loader/file/MrRobottoJsonLoader}{MrRobottoJsonLoader}}
+
+
+\newcommand{\rorefjsonbaseloader}[0]{\roref{engine/loader/core/MrJsonBaseLoader}{MrJsonBaseLoader}}
+
+\newcommand{\roreflinearalgebra}[0]{\roref{engine/linearalgebra/MrLinearAlgebraObject}{MrLinearAlgebraObject}}
+
+\newcommand{\rorefmatrix}[0]{\roref{engine/linearalgebra/MrMatrix4f}{MrMatrix4f}}
+
+\newcommand{\rorefquaternion}[0]{\roref{engine/linearalgebra/MrQuaternion}{MrQuaternion}}
+
+\newcommand{\rorefvectortresf}[0]{\roref{engine/linearalgebra/MrVector3f}{MrVector3f}}
+
+\newcommand{\rorefvectorcuatrof}[0]{\roref{engine/linearalgebra/MrVector4f}{MrVector4f}}
+
+\newcommand{\roreftransform}[0]{\roref{engine/linearalgebra/MrTransform}{MrTransform}}
+
+\newcommand{\rorefeventdispatcher}[0]{\roref{engine/events/MrEventDispatcher}{MrEventDispatcher}}
+
+\newcommand{\rorefbundle}[0]{\roref{engine/events/MrBundle}{MrBundle}}
 
 %----------------------------------------------------------------------------------------
 %	DOCUMENT VARIABLES

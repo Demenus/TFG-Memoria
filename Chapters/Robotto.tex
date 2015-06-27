@@ -120,15 +120,18 @@ Aunque la escena no genere estrictamente hablando un cambio visible si se decide
 Aún así existen más motivos que justifican esta decisión, y es que la escena, conceptualmente, es un buen lugar donde albergar la responsabilidad de la generación de uniforms que sean dependientes de varios objetos. Este concepto se explica en la siguiente apartado.
 
 \subsection{Los Conceptos de UniformKey y UniformGenerator}\label{susec:UnifKeyUnifGen}
-En este apartado se tratará cómo se realiza el envío de datos desde CPU a GPU.\\
-Con este fin se ha implementado en \robotto tres elementos muy relacionados entre sí.\\
+En este apartado se tratará cómo se realiza el envío de datos desde CPU a la GPU.\\
+Antes de comenzar se introducirán algunos términos referidos a la programación gráfica, por una parte se ha de conocer que es un Shader Program. Un Shader Program es un programa orientado a ser ejecutado sobre la GPU y que se encarga de realizar el sombreado sobre los distintos vértices de los objetos renderizados.\\
+Dichos Shader Programs pueden recibir entradas de datos, estos se dividen en Attributes, que son datos dependientes de cada vértice y Uniforms, que son datos constantes dentro de cada ejecución del Shader Program, siendo así independientes de los vértices.
+
+Ahora bien, una vez introducidos los conceptos, con el fin de enviar los Uniforms desde CPU a GPU de forma sencilla se han implementado en \robotto tres elementos muy relacionados entre sí.\\
 \begin{itemize}
 \item En primer lugar se tienen los \textbf{Uniforms}, que no son si no una representación de los \textit{uniforms} usados en los \textit{Shader Programs}.\\
 Dichos Uniforms poseen, entre otras cosas, dos campos fundamentales que hacen posible la comunicación
 \begin{itemize}
 \item El \texttt{UniformType}, que determina el tipo uniform al que se hace referencia, como podría ser la matriz de proyección o la \textit{ModelView Matrix}.\\
 Podría pensarse que este papel ya es desempeñado por el nombre del uniform dentro del \textit{Shader Program}, sin embargo, definiendo el tipo del Uniform de esta forma permite que distintos \textit{Shader Programs} puedan requerir un mismo Uniform sin necesidad de que su código presente las mismas variables obligatoriamente.
-\item El \texttt{UniformId} representa el identificador dado por la GPU de la variable \textit{uniform} en cuestión.
+\item El \texttt{UniformId} representa el identificador dado por la GPU a la variable \textit{uniform} en cuestión.
 \end{itemize}
 \item Por otra parte se tienen los \textbf{UniformGenerators}, estos elementos tienen como función principal asignarle a cada objeto la funcionalidad necesaria para generar los valores de los Uniforms que este objeto sea el encargado de producir. Por ejemplo, la cámara será la encargada de producir la \textit{View Matrix} pero no la \textit{Model View Matrix} ya que esta depende de la cámara y también de la \textit{Model Matrix}, la cuál es generada por un modelo.\\
 Todo UniformGenerator poseerá un identificador único dentro del conjunto de generadores de un objeto individual.
@@ -156,11 +159,10 @@ Para conseguirlo el UniformKey cuenta con un campo que le permite enlazarse con 
 \end{figure}
 
 De estos elementos, tanto Uniforms como UniformKeys son proporcionados por el fichero MRR como una parte más de un objeto, sin embargo, los UniformGenerators, son proporcionados vía código. Algunos de estos UniformGenerators, o al menos, los más usuales son provistos por el propio motor, sin embargo, la API ofrece la posibilidad de que el usuario pueda crear un nuevo UniformGenerator así como modificar el comportamiento de alguno ya existente tal y como se explica en.\\
-TODO: Dar la referencia en el documento de como crear un uniform generator\\
 
-TODO: Explicar los niveles
-
-TODO: Explicar caso del MVP
+Por último mencionar que los UniformGenerators pueden llegar a presentar un grave problema si no se controla. En el caso de que por ejemplo se necesitase calcular una cierta multiplicación de dos matrices $A$ y $B$ y que tanto $A$ como $B$ deben generarse también en un UniformGenerator. Ante esta situación podría pasar que $AB$ fuese calculada antes de generar las matrices $A$ y $B$ para ese frame. Es por eso que se hace necesario añadir ciertas restricciones a los UniformGenerators, estos son los denominados niveles.\\
+El nivel del UniformGenerator indica el orden en el que este debe ser calculado y va desde 0 en adelante.\\
+En el ejemplo anterior $A$ y $B$ podrían tener niveles 0 ambas mientras que $AB$ podría estar en el nivel 1, de esta forma se asegura que tanto $A$ como $B$ son generadas previamente a $AB$\\
 
 \subsection{La Necesidad del Rendering Context}
 El \textbf{Rendering Context} es el elemento encargado organizar y optimizar los datos utilizados al dibujar la escena.\\
@@ -180,8 +182,10 @@ Por ejemplo, se ordenan todos los modelos que posean la misma textura, esta se e
 \end{figure}
 
 \subsection{Eventos}
+TODO:
 
 \subsection{Algoritmo de Renderizado}
+TODO: Modificar la explicación del renderingsorter
 Ahora que se han tratado todos los conceptos fundamentales que definen el funcionamiento del motor se puede establecer el comportamiento del ciclo del renderizado desde su inicialización hasta la generación de la imagen final.\\
 
 En primer lugar se presenta el esquema de inicialización de los elementos gráficos.\\
@@ -271,7 +275,7 @@ Estas son o bien métodos genéricos, como podrían ser el constructor u obtener
 TODO: Aumentar el tamaño de la fuente
 \begin{figure}[h!]
 \centering
-\subfloat[Métods Genéricos]{
+\subfloat[Métodos Genéricos]{
   \includegraphics[scale=0.6]{objgeneric.png}
 }
 \subfloat[Métodos de Gestión de Eventos]{
@@ -288,11 +292,17 @@ TODO: Aumentar el tamaño de la fuente
 \label{fig:metodosmrobject}
 \end{figure}
 
-\subsubsection{MrModel, MrCamera, MrLight y MrScene}
+El resto de tipos de objetos que pueden estar presentes en la escena, a saber: \rorefmodel, \rorefcamera, \roreflight y \rorefscene, comparten gran parte de la interfaz de \rorefobject, sin embargo, representan objetos de la escena los cuales tienen atributos únicos de su tipo.\\ 
 
 \subsection{Eventos}
-TODO: Gestión de eventos con mayor detalle, como la interfaz EventListener y EventDispatcher
 
+La gestión de los eventos a nivel interno se realiza en dos pasos.\\
+El primero de ellos reside sobre la clase \rorefeventdispatcher pues es la encargada de recibir los eventos desde su fuente y tras ello enviarlo para su procesado dentro del bucle principal de renderización.\\
+Dichos eventos deben establecer un identificador único para distinguir el tipo de evento enviado.\\
+Además, a veces resulta necesario el envío de datos captados del evento se ha diseñado un elemento denominado \rorefbundle, en este elemento un usuario que reimplementase el comportamiento del \rorefeventdispatcher asociado al motor en ese momento debería hacer uso de esta herramienta para el envío de datos.\\
+
+Una vez dichos datos llegan al hilo de ejecución del renderizado se procesan en orden de llegada para ser procesados dentro de los llamados \rorefeventlistener, estos elementos están asociados a cada uno de los objetos de la escena.\\
+Ahora bien, no todos los objetos procesan todos los eventos recibidos, los \rorefeventlistener registran una serie de eventos a procesar, de esa forma, si un \rorefeventlistener tiene registrado el identificador de un cierto evento significa que será procesado por él, e ignorándolo en caso de que no esté registrado. En caso de que se procese el evento, el EventListener recibe como argumento la referencia al \rorefbundle asociado al evento recibido.
 
 \subsection{Estructura de los Objetos}
 Como se ha comentado ya durante este documento, la clase \rorefobject y todas sus subclases, son interfaces de una estructura subyacente encargada de administrar los objetos de la escena, tanto desde la gestión de eventos, pasando por el renderizado, como la gestión de los datos del objeto de la escena.\\
@@ -310,6 +320,7 @@ Tal y como se puede apreciar en la figura \ref{fig:mdr} la estructura emula al p
 
 \subsubsection{Contenedores de Datos}
 Los contenedores de datos serían la parte del modelo dentro del patrón MVC, su funcionalidad está restringida a almacenar datos necesarios del objeto que serán requeridos o bien por el controlador o bien por la parte del renderizador.\\
+En los contenedores de datos también son almacenados tanto los UniformKeys de los objetos como los UniformGenerators que posean, y aunque su uso se realice mediante el controlador, este actúa como una interfaz.\\
 Todos los elementos contenedores de datos requieren que se herede de la clase \rorefobjectdata\\
 Todos los contenedores de datos se encuentran dentro del paquete \roref{engine/core/data/package-summary}{mr.robotto.engine.core.data}
 \subsubsection{Renderizadores}
@@ -329,7 +340,7 @@ Simplemente comprueba si el renderizador ha sido iniciado
 Este método es el encargado de pasar datos a la tarjeta gráfica en cada frame.
 \end{itemize}
 Todos los renderizadores de objetos se encuentran dentro del paquete \roref{engine/core/render/package-summary}{mr.robotto.engine.core.render}
-\subsubsection{Controladores}
+\subsubsection{Controladores}\label{rref:controlador}
 La figura del controlador es la encargada de coordinar y dar sentido a todos los elementos que, en conjunto, conformen un objeto de la escena. 
 
 \begin{figure}[h!]
@@ -353,9 +364,9 @@ Así pues, la finalidad de estos elementos es la de conformar los atributos de l
 
 Todos los componentes deben heredar desde la clase base que se ha definido para este fin: \rorefcomponent
 
-\subsection{MrObjectController}
-
 \subsection{MrModelController y sus Componentes}
+Por su relevancia e interés se ha decidido hacer una mención especial a los modelos, que como componentes visibles que son, poseen una cierta relevancia que debe ser tratada en detalle.
+
 \subsubsection{Mallas 3D}
 Las mallas 3D, o como se han denominado en \robotto, \rorefmesh, son componententes pertenecientes a los modelos.\\
 Son los encargados de enviar los datos relativos a los vértices a la GPU.\\
@@ -433,24 +444,23 @@ Unos de los componentes más importantes dentro de los modelos son los Shader Pr
 
 Se encuentra formada por tres elementos fundamentales:
 \begin{itemize}
-\item Attributes: TODO
-\item Uniforms: TODO
-\item Shaders: TODO
+\item Attributes: Son la entrada de datos por cada vértice del Shader Program, en ellos se encuentran los datos enviados desde una malla 3D, y en el caso de los modelos, los Attributes se corresponden biyectivamente con los \rorefbufferkey de la malla del modelo.\\
+Están representados por la clase \rorefattribute.
+\item Uniforms: Los Uniforms son elementos que permanecen constantes para los conjuntos de vértices enviados en bloque a la CPU.\\
+Almacenan un \texttt{UniformType} que es la constante que permite identificar de forma única al uniform dentro del shader.\\
+Están definidos dentro de la clase \rorefuniform.
+\item Shaders: Los Shaders por último son la clase que almacena el código que se ejecutará en la GPU. Los dos tipos posibles de Shaders implementados dentro de \robotto son los Vertex Shaders, encargados del procesado por vértice de una malla y los Fragment Shaders, encargados del procesado por pixel de la imagen generada.
 \end{itemize}
 
-
-
-
-TODO: Shaders, Attributes, Uniforms y Generadores de Uniforms (estos últimos tienen especial interés ya que gracias a ellos en un cierto objeto dado podemos generar un uniform y relacionarlo con un uniform del shader, explicar ese enlace en profundidad en la sección de renderizadores)
 
 \subsection{Paquete de Herramientas}
 Entre las utilidades más relevantes para el funcionamiento de \robotto cabe destacar el papel de los cargadores de datos, encargados de transformar los ficheros \textit{".mrr"} a la estructura interna del motor, así como las distintas clases encargadas de representar estructuras de datos específicamente implementadas para acomodar los datos usados.
 
 \subsubsection{Cargadores de Datos}
-%La carga de datos se podría distinguir en tres partes.\\
-%En primer lugar y como punto de entrada 
-
-TODO: Explicar como funciona la carga de datos y cómo se realiza una carga paralela de por ejemplo los JSON y las texturas
+La carga de datos se podría distinguir en tres partes.\\
+En primer lugar y como punto de entrada la carga del MRR file del que se encarga la clase \rorefmrrloader que se encarga de separar la sección JSON de la sección de las texturas.\\
+Una vez separadas los bitmaps procedentes de las texturas se almacenan dentro de una instancia de la clase \rorefresources, que se trata de una clase auxiliar usada durante la carga de datos a modo de almacenamiento de recursos temporales o compartidos.\\
+Por otra parte, durante el procesamiento de la sección JSON se pasa la información a la clase \rorefrobottojsonloader, en ella el trabajo se irá delegando de forma continua en clases especializadas, esto quiere decir que habrá un cargador de datos por cada sección de datos relevante, por ejemplo, podremos encontrar cargadores para los modelos, las luces o las cámaras ya que requieren un tratamiento distinto y generan un resultado distinto. Es por eso que todas estas clases en las que se delegan extienden la clase genérica \rorefjsonbaseloader, que proporciona una interfaz unificada y directa para la obtención de los datos. 
 
 \subsection{Paquete de Estructuras de Datos}
 Para la implementación de partes esenciales de la arquitectura, como por ejemplo, la construcción de la propia escena, se requerían de ciertas estructuras de datos específicas para la aplicación.\\
@@ -462,12 +472,24 @@ Esta sencilla clase permite realizar un mapeo directo entre los objetos contenid
 $$\text{Object}\mapsto \text{Key}$$
 
 \subsection{Paquete Matemático}
-\subsubsection{MrLinearAlgebraObject}
-\textbf{MrLinearAlgebraObject} es la interfaz principal de todos los objetos que necesiten por una parte, almacenar datos numéricos, como podrían ser ls componentes de un vector, una matriz,... y por otra usarse como interfaz a la hora de transmitir datos desde la aplicación a la GPU en forma de \textit{uniforms}.
-TODO: Clase base de los elementos matemáticos, y no matemáticos, pues será la clase fundamental para poder pasarlos como uniforms
-TODO: Comentar la alta optimización de las operaciones
-\subsubsection{Matrices}
-\subsubsection{Cuaterniones}
-\subsubsection{Vectores}
-\subsubsection{MrTransforms}
-TODO: Clase base de las transformaciones geométricas, comentar cómo se combinan las clases anteriores para ofrecer operaciones tales como rotar alrededor de un punto
+El paquete matemático de \robotto es posiblemente uno de los paquetes con más peso dentro de la aplicación. Es por ello que se ha invertido una gran cantidad de tiempo en su optimización y que sea sencillo de usar.\\
+
+La interfaz base para todos los objetos matemáticos dentro de \robotto es la denominada \roreflinearalgebra, su método más importante es posiblemente el método \texttt{float[] getValues} que es el encargado final de transmitir los datos almacenados en él hacia los Uniforms dentro de los Shader Programs.\\
+
+Dependiendo de esta interfaz se encuentran clases usuales dentro de las aplicaciones 3D, a saber:
+
+\begin{itemize}
+\item Matrices 4x4: Encargadas de representar transformaciones lineales dentro del espacio tridimensional usando coordenadas homogéneas.\\
+Las matrices 4x4 están representada por la clase \rorefmatrix
+\item Cuaterniones: Orientados hacia las rotaciones\\
+Los cuaterniones está representada por la clase \rorefquaternion dentro del motor.
+\item Vectores de 3 y 4 componentes: Usados para representar puntos en el espacio, direcciones e incluso colores almacenados como RGB o RGBA.\\
+Los vectores de 3 y 4 componentes vienen representados por las clases \rorefvectortresf y \rorefvectorcuatrof respectivamente.
+\end{itemize}
+
+Sobre estas clases fundamentales que son capaces de representar las transformaciones comunes del espacio tridimensional se fundamenta la clase \roreftransform, clase con un gran peso dentro de \robotto pues es la encargada de gestionar todas las transformaciones de un objeto de la escena.\\
+Lleva a cabo transformaciones simples como rotar, trasladas o escalar, pero a su vez también se encarga de operaciones más complejas como la de rotar alrededor de un eje arbitrario y pasando por un cierto punto, rotar alrededor de un punto,...\\
+Además otra de sus funciones es la de mantener un sistema de coordenadas locales del objeto, permitiendo tener una referencia de conceptos como que es "ir hacia adelante o ir hacia arriba" para un objeto independientemente del mundo.\\
+
+Por otra parte, y como ya se ha mencionado, esta sección se encuentra altamente optimizada. Los métodos de operaciones matemáticas requieren de forma obligatoria que se les inyecte una instancia de la clase resultante, de esta forma se consigue delegar en un nivel superior la gestión de la memoria.\\
+El por qué de esto se debe a que resulta altamente costoso el hecho de, por ejemplo, multiplicar dos matrices y tener que crear una nueva cada vez en la que se devuelva el resultado, y más aún si consideramos que gran parte de esas operaciones se producen en cada frame.
