@@ -12,10 +12,11 @@
 
 \section{La Aplicación \studio}
 \studio consiste en una aplicación distribuida con un cliente web y un cliente Android respaldados ambos por un servidor construido sobre el framework web para Python, Django.\\
-Esta aplicación se construye ante la necesidad de poder visualizar la escena actual durante el desarrollo. El proceso natural del desarrollo en Android consiste en inclusión de recursos, construcción del proyecto e instalación en el dispositivo. Realizar esta costosa operación para pequeños cambios como podría ser una pequeña traslación de un objeto, rotar la cámara,... llega a ser un proceso lento y tedioso, gracias a \studio se consigue visualizar el estado de la escena de forma instantánea.
+Esta aplicación se construye ante la necesidad de poder visualizar la escena actual durante el desarrollo.\\
+El proceso natural del desarrollo en Android consiste en inclusión de recursos, construcción del proyecto e instalación en el dispositivo. Realizar esta costosa operación para pequeños cambios como podría ser una pequeña traslación de un objeto, rotar la cámara,... llega a ser un proceso lento y tedioso, gracias a \studio se consigue visualizar el estado de la escena de forma instantánea.
 
 \section{Blender Scripting}
-Como se ha dicho, el motivo de existir de \studio se basa en la necesidad de simplificar el desarrollo, y entre esas tareas está el poder ofrecer un entorno completo en el que, hasta la exportación de las escenas almacenadas en blender se simplifique.\\
+Como se ha dicho, uno de los motivo de existir de \studio se basa en la necesidad de simplificar el desarrollo, y entre esas tareas está el poder ofrecer un entorno completo en el que, hasta la exportación de las escenas almacenadas en blender se simplifique.\\
 
 Para la exportación desde Blender se hace uso de la API para Python.\\
 Se explicará a continuación la estructura que sigue el script de exportación.\\
@@ -26,7 +27,7 @@ Haciendo uso de la biblioteca de JSON para Python convertiremos estos objetos en
 
 \subsection{Exportadores}
 Los exportadores son los elementos fundamentales encargados de convertir objetos de Blender a los objetos planos que serán exportados.\\
-Cabe destacar que mientras que algunos exportadores son relativamente sencillos como podrían ser los exportadores de los materiales otros como los exportadores de las mallas 3D requieren de hacer un uso intensivo de la API de Blender.
+Cabe destacar que mientras que algunos exportadores son relativamente sencillos como podrían ser los exportadores de los materiales otros como los exportadores de las mallas 3D requieren de hacer un uso intensivo de la API de Blender.\\
 
 
 \section{Cliente Web}
@@ -35,21 +36,52 @@ El cliente web es el encargado de ofrecer una interfaz sencilla para exportar fi
 El mapa web del sitio comprende las siguientes secciones:
 \begin{itemize}
 \item "\slash studio": Es la página principal de la aplicación web de \studio, proporciona información contextual sobre dispositivos conectados o el fichero blender actual preparado para enviarlo a un dispositivo Android
-\item "\slash blender-config": Página encargada de establecer el ejecutable de Blender
-\item "\slash blender-file": Página encargada de establecer el fichero blender que se enviará al dispositivo Android.
+\item "\slash studio/blender-config": Página encargada de establecer el ejecutable de Blender
+\item "\slash studio/blender-file": Página encargada de establecer el fichero blender que se enviará al dispositivo Android.
+\item "\slash studio/json-tools": En esta página se podrá visualizar y editar algunos campos del archivo MRR en uso así como notificarle al cliente Android la existencia de una actualización. 
 \end{itemize}
-TODO: agregar capturas de pantalla
+
+\begin{figure}[h!]
+\centering
+\subfloat[\slash studio/]{
+  \includegraphics[scale=0.15]{studio1.png}
+}
+\subfloat[\slash studio/blender-config]{
+  \includegraphics[scale=0.15]{studio2.png}
+}
+\hspace{0mm}
+\subfloat[\slash studio/blender-file]{
+  \includegraphics[scale=0.15]{studio3.png}
+}
+\subfloat[\slash studio/json-tools]{
+  \includegraphics[scale=0.15]{studio4.png}
+}
+\caption[Capturas de pantalla de \studio Web]{Capturas de pantalla de \studio Web}
+\label{fig:capturasweb}
+\end{figure}
 
 \section{Cliente Android}
 El ciente Android es la parte de la aplicación que hace de mensajero entre el servidor Django y \robotto.\\
-Está construída como una aplicación sencilla y ligera para evitar sobrecarga de la CPU permitiendo así que se visualice la escena aprovechando todos los recursos del dispositivo.\\
+Está construída como una aplicación sencilla y ligera para poder aprovechar todos los recursos disponibles del dispositivo al visualizar la escena\\
 
 Está compuesta por dos pantallas
 \begin{itemize}
-\item Pantalla de conexión: Permite establecer la IP y puerto sobre la que se ejecuta el servidor Django, tras comprobar que el servidor se encuentra activo procede a conectarse a él y derivando la aplicación a la siguiente pantalla.
-\item La pantalla de Debug es la encargada de recibir los datos desde el servidor y mostrarlos dentro de una instancia de \robotto.
+\item Pantalla de conexión: Es la primera pantalla que se presenta al abrrir la aplicación, permite establecer la IP y el puerto en el que se ejecuta el servidor Django.\\
+Tras comprobar que el servidor se encuentra activo procede a conectarse a él y derivando el control de la aplicación a la siguiente pantalla.
+\item La pantalla de Debug es la pantalla mostrada una vez se ha realizado con éxito la conexión al servidor. Es la encargada de recibir los datos desde el servidor y mostrarlos dentro de una instancia de \robotto.
 \end{itemize}
 
+\begin{figure}[h!]
+\centering
+\subfloat[\slash studio/]{
+  \includegraphics[scale=0.15]{studioand1.jpg}
+}
+\subfloat[\slash studio/blender-config]{
+  \includegraphics[scale=0.15]{studioand2.jpg}
+}
+\caption[Capturas de pantalla de \studio Android]{Capturas de pantalla de \studio Android}
+\label{fig:capturasandroid}
+\end{figure}
 
 \section{La Aplicación Django}
 La aplicación Django es la aplicación del lado del servidor encargada de controlar tanto el cliente web como el cliente Android.\\

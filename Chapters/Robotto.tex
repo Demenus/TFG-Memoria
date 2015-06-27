@@ -185,8 +185,14 @@ Un ejemplo del funcionamiento del Rendering Context en conjunto con el Rendering
 De proceder a renderizar los objetos en el orden predeterminado: Model1, Model2 y Model3 hay que notar que se establece en primer lugar Texture1, luego Texture2 y por último Texture1 de nuevo. Como se ha dicho, cambios de una textura a otra resultan operaciones costosas, así que se reorganizan los objetos de forma que al renderizar en el orden Model1, Model3 y Model2 únicamente se produce un cambio de estado en la textura en lugar de dos.
 
 \subsection{Eventos}
-Los eventos dentro de \robotto son implementados 
-TODO:
+Los eventos dentro de \robotto son implementados en dos partes, en primer lugar el dispositivo registra un evento procedente del exterior como podría ser que el usuario tocase la pantalla, o incluso este evento puede proceder del propio \robotto, como podría ser el evento \textit{Tick} que indica que se produce una llamada para generar un frame.\\
+
+Una vez estos eventos se detectan se les asigna un identificador único y además almacenan los datos recibidos en el evento.\\
+
+Ahora bien, los eventos no se ejecutarán de forma sincronizada con \robotto, es necesario buscar algún mecanismo de sincronización entre la ejecución de la aplicación que produce los eventos, y la ejecución de la renderización. Para ello lo que se ha decidido hacer es compartir una cola de eventos entre distintos hilos de ejecución, de esa forma cuando un evento es recibido este se envía a la cola compartida, y cuando se ejecute la renderización se procederá a procesar los elementos 
+en orden de llegada.\\
+
+Finalmente, y cuando sean procesados uno a uno los eventos la información almacenada en ellos será delegada a los distintos eventos que sean responsables del tratamientos de estos.\\
 
 \subsection{Algoritmo de Renderizado}
 Ahora que se han tratado todos los conceptos fundamentales que definen el funcionamiento del motor se puede establecer el comportamiento del ciclo del renderizado desde su inicialización hasta la generación de la imagen final.\\
@@ -208,7 +214,6 @@ En el caso del renderizado de un frame lo primero que se realiza es actualizar e
 Tras ello tomamos el primer modelo de la lista de modelos ordenados generados en la inicialización y cargamos en la lista de UniformKeys todos los UniformKeys de este modelo y del resto de objetos activos, a saber: la cámara actual, las luces y la escena.\\
 Una vez todos los UniformKeys han sido ordenados por nivel de dependencias se generan los valores de estos en los UniformGenerators y se envían a la GPU.
 
-TODO: Editar y agregar la columna de model, recuerda que es para cada modelo
 \begin{figure}[h!]
 \begin{center}
 \includegraphics[scale=0.7]{renderrender.png}
@@ -275,7 +280,6 @@ A pesar de ser una clase considerablemente importante de cara al uso, esta clase
 Las posibles acciones que se pueden realizar con una instancia de \rorefobject podrían dividirse en cuatro grupos según su funcionalidad.\\
 Estas son o bien métodos genéricos, como podrían ser el constructor u obtener el tipo de objeto, métodos orientados a la gestión de eventos, como agregar o eliminar un evento a procesar, de jerarquía, como acceder a los hijos o al padre de un objeto, o de transformación, como puede ser rotar, escalar o trasladar el objeto.\\
 
-TODO: Aumentar el tamaño de la fuente
 \begin{figure}[h!]
 \centering
 \subfloat[Métodos Genéricos]{
@@ -467,15 +471,15 @@ Por otra parte, durante el procesamiento de la sección JSON se pasa la informac
 
 \subsection{Paquete de Estructuras de Datos}
 Para la implementación de partes esenciales de la arquitectura, como por ejemplo, la construcción de la propia escena, se requerían de ciertas estructuras de datos específicas para la aplicación.\\
-Este es el caso de \textbf{MrTreeMap}, clase 
+Este es el caso de \roreftreemap, clase encargada de presentar una estructura de árbol con un número variable de hijos por cada nodo y con capacidad de realizar búsquedas en el árbol de forma inmediata gracias a su diccionario interno.\\
+Sobre esta clase están basados los árboles de la escena.\\
 
-Las siguientes estructuras de datos aquí presentadas han sido pensadas tanto como para representar los datos requeridos así como una gran rapidez a la hora de acceder a ellos y realizar búsquedas.\\
-Con ese fin se ha desarrollado una herramienta auxiliar denominada \textbf{MrMapFunction}.\\
-Esta sencilla clase permite realizar un mapeo directo entre los objetos contenidos en las estructuras y las llaves asociadas a ellos.
-$$\text{Object}\mapsto \text{Key}$$
+Ahora bien, como es necesario que estas clases posean una API sencilla de utilizar y a la vez una velocidad de acceso muy alta se ha desarrollado una herramienta auxiliar denominada \rorefmapfunction.\\
+Esta sencilla clase permite realizar un mapeo directo entre los objetos contenidos en las estructuras y las llaves asociadas a ellos.\\
+En el caso del Scene Tree este mapeo de datos es el que se origina de asignarle a cada objeto su nombre como llave.
 
 \subsection{Paquete Matemático}
-El paquete matemático de \robotto es posiblemente uno de los paquetes con más peso dentro de la aplicación. Es por ello que se ha invertido una gran cantidad de tiempo en su optimización y que sea sencillo de usar.\\
+El paquete matemático de \robotto es posiblemente uno de los paquetes con más peso dentro de la aplicación. Es por ello que se ha invertido una gran cantidad de tiempo en su optimización y en que sea sencillo de usar.\\
 
 La interfaz base para todos los objetos matemáticos dentro de \robotto es la denominada \roreflinearalgebra, su método más importante es posiblemente el método \texttt{float[] getValues} que es el encargado final de transmitir los datos almacenados en él hacia los Uniforms dentro de los Shader Programs.\\
 
@@ -492,7 +496,7 @@ Los vectores de 3 y 4 componentes vienen representados por las clases \rorefvect
 
 Sobre estas clases fundamentales que son capaces de representar las transformaciones comunes del espacio tridimensional se fundamenta la clase \roreftransform, clase con un gran peso dentro de \robotto pues es la encargada de gestionar todas las transformaciones de un objeto de la escena.\\
 Lleva a cabo transformaciones simples como rotar, trasladas o escalar, pero a su vez también se encarga de operaciones más complejas como la de rotar alrededor de un eje arbitrario y pasando por un cierto punto, rotar alrededor de un punto,...\\
-Además otra de sus funciones es la de mantener un sistema de coordenadas locales del objeto, permitiendo tener una referencia de conceptos como que es "ir hacia adelante o ir hacia arriba" para un objeto independientemente del mundo.\\
+Además otra de sus funciones es la de mantener un sistema de coordenadas locales del objeto, permitiendo tener una referencia de conceptos como qué es "ir hacia adelante o ir hacia arriba" para un objeto independientemente de las coordenadas del mundo.\\
 
 Por otra parte, y como ya se ha mencionado, esta sección se encuentra altamente optimizada. Los métodos de operaciones matemáticas requieren de forma obligatoria que se les inyecte una instancia de la clase resultante, de esta forma se consigue delegar en un nivel superior la gestión de la memoria.\\
-El por qué de esto se debe a que resulta altamente costoso el hecho de, por ejemplo, multiplicar dos matrices y tener que crear una nueva cada vez en la que se devuelva el resultado, y más aún si consideramos que gran parte de esas operaciones se producen en cada frame.
+El por qué de esto se debe a que resulta altamente costoso el hecho de, por ejemplo, multiplicar dos matrices y tener que crear una nueva instancia cuando se devuelve el resultado, y más aún si consideramos que gran parte de esas operaciones se producen en cada frame.

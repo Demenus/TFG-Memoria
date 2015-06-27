@@ -256,6 +256,10 @@
 
 \newcommand{\rorefbundle}[0]{\roref{engine/events/MrBundle}{MrBundle}}
 
+\newcommand{\roreftreemap}[0]{\roref{engine/collections/MrTreeMap}{MrTreeMap}}
+
+\newcommand{\rorefmapfunction}[0]{\roref{engine/collections/MrMapFunction}{MrMapFunction}}
+
 %----------------------------------------------------------------------------------------
 %	DOCUMENT VARIABLES
 %	Fill in the lines below to update the thesis template

@@ -12,11 +12,25 @@
 
 \section{Conclusiones}
 
+Tras el análisis de datos y una comprobación de las capacidades de \robotto procedemos a analizar los objetivos marcados al inicio del proyecto.\\
+
+\begin{itemize}
+\item \textit{Que sea un componente fácilmente integrable dentro de un proyecto Android}\\
+Ciertamente este objetivo se alcanzó desde la decisión de utilizar Java como lenguaje principal de desarrollo y unirlo a herramientas como Gradle\\
+\item \textit{Que posea de una sencilla interfaz de uso de cara al usuario final}
+Sin duda durante todo el desarrollo esta ha sido la gran piedra angular sobre la que se sustenta el proyecto, era necesario que tuviera una API sencilla de usarse
+\item \textit{Potencia suficiente como para considerarse un proyecto confiable para el desarrollo de aplicaciones 3D}\\
+Este objetivo solo ha podido cumplirse en parte. De cara al rendimiento de \robotto, considerando que ha de ejecutarse sobre un hardware limitado y que está escrito íntegramente en un lenguaje de programación del que no se tiene un control absoluto sobre el manejo de la memoria responde de forma considerablemente óptima.\\
+Sin embargo, a nivel de exportación y carga de datos los resultados no han resultado tan alentadores. La exportación desde Blender consume mucha memoria, y eso disminuye considerablemente las prestaciones, se ha de buscar otras formas de atacar cada objeto de forma más individualizada. Por otra parte la carga de datos falla por una mala decisión en el diseño por haber utilizado la biblioteca por defecto para JSON de Android, la cuál no es excesivamente potente si se compara con otras alternativas libres como podrían ser GSON o Jackson
+\item \textit{Hacer de \robotto no solo una herramienta de software si no un ecosistema completo para el desarrollo de aplicaciones}\\
+Como se ha dicho en el apartado anterior, dicho ecosistema flaquea en el aspecto de la optimización. Además dentro de la interfaz web de \studio aún hay elementos de la escena que no pueden ser editados.
+\end{itemize}
+
 \section{Mejoras Futuras}
-TODO: 
-Portar a C++
-Mejorar la carga
-Mejorar el formato MRR, separar en fuicheros, mejor integracion en Studio
-Añadir otro tipo de luces
-Compartir modelos
-REST en studio
+Entre las posibles mejoras a \robotto y \studio podría decirse que las primordiales son las que afectan al rendimiento de la propia plataforma, es necesario actualizar el código para obtener un mejor rendimiento global de la plataforma.\\
+
+Por otra parte, se considera necesario actualizar el formato MRR, quizás plantear un nuevo formato más amistoso con la memoria y más paralelizable a la hora de poder cargarse en memoria.\\
+
+Por otra parte dentro de \robotto aún hay mucho trabajo por hacer. En cuanto a la optimización sería un buen objetivo portar el código a un lenguaje de más bajo nivel como C++ aunque se perdiese un poco en facilidad de integración, agregar más capacidades al motor, como detección de colisiones, físicas, sistemas de partículas y similares.
+
+Por último, y en referencia a \studio, posiblemente una interfaz web no sea la adecuada para una aplicación de ese estilo, un posible camino a seguir sería el de mantener una aplicación servidor que actuase como una REST API y contar con clientes nativos de las plataformas principales
